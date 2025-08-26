@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_database/firebase_database.dart';
 
 class Application {
   final String userId;
@@ -71,7 +70,7 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
   Map<String, List<Application>> groupedApplications = {};
   List<bool> showOrderDetails = [];
   bool isLoading = true;
-  StreamSubscription<DatabaseEvent>? _subscription;
+  StreamSubscription? _subscription;
 
   @override
   void initState() {
@@ -85,21 +84,19 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
     final ref = FirebaseFirestore.instance
         .collection('applications')
         .doc(widget.jobProviderUserId)
-        .collection('posts'); // adjust if structure differs
+        .collection('posts');
 
     _subscription?.cancel();
     _subscription = ref.snapshots().listen(
-          (querySnapshot) async {
+      (querySnapshot) async {
         if (!mounted) return;
 
         Map<String, List<Application>> tempGroupedApps = {};
-         print("pdaljkdslflks");
-         print(querySnapshot.docs[0]);
+
         for (var postDoc in querySnapshot.docs) {
           final orderId = postDoc.id;
-
-          // Each post has a subcollection of worker applications
-          final workersSnapshot = await postDoc.reference.collection('workers').get();
+          final workersSnapshot =
+              await postDoc.reference.collection('workers').get();
           List<Application> workers = [];
 
           for (var workerDoc in workersSnapshot.docs) {
@@ -114,7 +111,10 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
 
         setState(() {
           groupedApplications = tempGroupedApps;
-          showOrderDetails = List.generate(tempGroupedApps.length, (_) => false);
+          showOrderDetails = List.generate(
+            tempGroupedApps.length,
+            (_) => false,
+          );
           isLoading = false;
         });
       },
@@ -125,19 +125,17 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
           SnackBar(content: Text('Failed to load applications: $error')),
         );
       },
-    ) as StreamSubscription<DatabaseEvent>? ;
+    );
   }
 
-
   Future<void> updateApplicationStatus(
-      String orderId,
-      String workerUserId,
-      String newStatus,
-      ) async {
+    String orderId,
+    String workerUserId,
+    String newStatus,
+  ) async {
     try {
       final firestore = FirebaseFirestore.instance;
 
-      // References for both paths to update
       final applicationsRef = firestore
           .collection('applications')
           .doc(widget.jobProviderUserId)
@@ -154,7 +152,6 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
           .collection('posts')
           .doc(orderId);
 
-      // Perform batched update to both locations
       WriteBatch batch = firestore.batch();
 
       batch.update(applicationsRef, {'status': newStatus});
@@ -162,19 +159,10 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
 
       await batch.commit();
 
-      // Optional UI update for rejected status
-      if (newStatus == 'rejected') {
-        setState(() {
-          groupedApplications[orderId]!
-              .firstWhere((app) => app.userId == workerUserId)
-              .showDetails = false;
-        });
-      }
+      await fetchApplications(); // 🔹 Refresh page after status update
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Application ${newStatus.toLowerCase()} successfully'),
-        ),
+        SnackBar(content: Text('Application $newStatus successfully')),
       );
     } catch (e) {
       ScaffoldMessenger.of(
@@ -183,6 +171,39 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
     }
   }
 
+  Future<void> sendIndividualConfirmation(
+    String workerUserId,
+    String postId,
+  ) async {
+    final firestore = FirebaseFirestore.instance;
+
+    try {
+      final inboxRef = firestore
+          .collection('messages')
+          .doc(workerUserId)
+          .collection('inbox');
+
+      await inboxRef.add({
+        'from': widget.jobProviderUserId,
+        'postId': postId,
+        'message': 'You are allowed to apply for this job.',
+        'type': 'job_confirmation',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      await updateApplicationStatus(postId, workerUserId, 'confirmation');
+
+      await fetchApplications(); // 🔹 Refresh page after confirmation
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Confirmation sent to worker.')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to send confirmation: $e')),
+      );
+    }
+  }
 
   Color getStatusColor(String status) {
     switch (status.toLowerCase()) {
@@ -192,6 +213,8 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
         return Colors.green;
       case 'rejected':
         return Colors.red;
+      case 'confirmation':
+        return Colors.orange;
       default:
         return Colors.grey;
     }
@@ -250,6 +273,7 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
   ) {
     bool showDetails = worker.showDetails;
     String status = worker.status;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Card(
@@ -327,51 +351,62 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
                       _detailText('Address', worker.address),
                       const SizedBox(height: 8),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Expanded(
                             child: ElevatedButton(
                               onPressed:
-                                  status == 'applied'
-                                      ? () => updateApplicationStatus(
-                                        orderId,
-                                        worker.userId,
-                                        'accepted',
-                                      )
+                                  (status == 'applied' ||
+                                          status == 'confirmation')
+                                      ? () async {
+                                        await updateApplicationStatus(
+                                          orderId,
+                                          worker.userId,
+                                          'accepted',
+                                        );
+                                      }
                                       : null,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
                               ),
-                              child: const Text(
-                                'Accept',
-                                style: TextStyle(color: Colors.white),
-                              ),
+                              child: const Text('Accept'),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed:
+                                  (status == 'applied' ||
+                                          status == 'confirmation')
+                                      ? () async {
+                                        await updateApplicationStatus(
+                                          orderId,
+                                          worker.userId,
+                                          'rejected',
+                                        );
+                                      }
+                                      : null,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                              ),
+                              child: const Text('Reject'),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
                           Expanded(
                             child: ElevatedButton(
                               onPressed:
                                   status == 'applied'
-                                      ? () => updateApplicationStatus(
-                                        orderId,
-                                        worker.userId,
-                                        'rejected',
-                                      )
+                                      ? () async {
+                                        await sendIndividualConfirmation(
+                                          worker.userId,
+                                          orderId,
+                                        );
+                                      }
                                       : null,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
+                                backgroundColor: Colors.orange,
                               ),
-                              child: const Text(
-                                'Reject',
-                                style: TextStyle(color: Colors.white),
-                              ),
+                              child: const Text('Confirmation'),
                             ),
                           ),
                         ],

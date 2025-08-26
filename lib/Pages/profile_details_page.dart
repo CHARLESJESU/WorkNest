@@ -6,6 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/user_data.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:path/path.dart' as path;
 
 class ProfileDetailsPage extends StatefulWidget {
   final UserData userData;
@@ -21,10 +23,42 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
   late UserData userData;
   final picker = ImagePicker();
 
+  final List<String> profileImages = [
+    'assets/images/profile1.png',
+    'assets/images/profile2.png',
+    'assets/images/profile3.png',
+  ];
+
+  int selectedProfileIndex = 0;
+
   @override
   void initState() {
     super.initState();
     userData = widget.userData;
+    _loadSelectedProfileIndex();
+    _loadSavedProfileImage();
+  }
+
+  Future<void> _loadSelectedProfileIndex() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      selectedProfileIndex = prefs.getInt('profileIndex') ?? 0;
+    });
+  }
+
+  Future<void> _saveSelectedProfileIndex(int index) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('profileIndex', index);
+  }
+
+  Future<void> _loadSavedProfileImage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? savedPath = prefs.getString('localProfileImage_${userData.userId}');
+    if (savedPath != null && savedPath.isNotEmpty) {
+      setState(() {
+        userData.profileImage = savedPath;
+      });
+    }
   }
 
   Future<void> _pickImage() async {
@@ -33,6 +67,12 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
       setState(() {
         userData.profileImage = picked.path;
       });
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        'localProfileImage_${userData.userId}',
+        picked.path,
+      );
     }
   }
 
@@ -42,33 +82,64 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
     void Function(String) onChanged,
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
       child: TextFormField(
         initialValue: value,
-        decoration: InputDecoration(labelText: label),
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        ),
         onChanged: onChanged,
       ),
     );
   }
 
+  Widget _buildUserInfoCard(String title, String value) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue.shade100, width: 1.5),
+      ),
+      child: Row(
+        children: [
+          Text(
+            '$title: ',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue.shade800,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(fontSize: 16, color: Colors.blue.shade600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _saveProfile() async {
-    // Determine path based on role
     final rolePath =
         userData.role.toLowerCase() == 'worker' ? 'workers' : 'jobproviders';
 
-    // Save to Firebase under correct role path
     final DocumentReference ref = FirebaseFirestore.instance
         .collection('users')
         .doc(rolePath)
         .collection(rolePath)
         .doc(userData.userId);
 
-
     await ref.set(userData.toJson());
 
-    // Save to SharedPreferences
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('userData', jsonEncode(userData.toJson()));
+    await _saveSelectedProfileIndex(selectedProfileIndex);
 
     ScaffoldMessenger.of(
       context,
@@ -79,10 +150,22 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    ImageProvider avatarImage;
+
+    if (userData.profileImage != null &&
+        userData.profileImage!.isNotEmpty &&
+        File(userData.profileImage!).existsSync()) {
+      avatarImage = FileImage(File(userData.profileImage!));
+    } else {
+      avatarImage = AssetImage(profileImages[selectedProfileIndex]);
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Profile Details'),
         backgroundColor: Colors.blue,
+        elevation: 0,
+        centerTitle: true,
       ),
       body: ListView(
         children: [
@@ -90,34 +173,30 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
           Center(
             child: Stack(
               children: [
-                CircleAvatar(
-                  radius: 50,
-                  backgroundImage:
-                      userData.profileImage != null &&
-                              userData.profileImage!.isNotEmpty
-                          ? FileImage(File(userData.profileImage!))
-                          : null,
-                  child:
-                      userData.profileImage == null ||
-                              userData.profileImage!.isEmpty
-                          ? Text(
-                            userData.name.isNotEmpty
-                                ? userData.name[0].toUpperCase()
-                                : '?',
-                            style: TextStyle(fontSize: 40, color: Colors.white),
-                          )
-                          : null,
-                  backgroundColor: Colors.grey,
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.blue.shade200, width: 3),
+                  ),
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundImage: avatarImage,
+                    backgroundColor: Colors.grey.shade200,
+                  ),
                 ),
                 Positioned(
                   bottom: 0,
                   right: 0,
                   child: GestureDetector(
                     onTap: _pickImage,
-                    child: CircleAvatar(
-                      radius: 18,
-                      backgroundColor: Colors.white,
-                      child: Icon(Icons.edit, color: Colors.blueAccent),
+                    child: Container(
+                      padding: EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.blue,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: Icon(Icons.edit, color: Colors.white, size: 18),
                     ),
                   ),
                 ),
@@ -125,6 +204,13 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
             ),
           ),
           const SizedBox(height: 20),
+          // User info cards at the top
+          _buildUserInfoCard('Role', userData.role),
+          _buildUserInfoCard('User ID', userData.userId),
+          const SizedBox(height: 8),
+          Divider(thickness: 1, height: 20, indent: 20, endIndent: 20),
+          const SizedBox(height: 8),
+          // Editable fields
           _buildEditableField(
             'Name',
             userData.name,
@@ -134,11 +220,6 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
             'Phone',
             userData.phoneNumber,
             (val) => userData.phoneNumber = val,
-          ),
-          _buildEditableField(
-            'Role',
-            userData.role,
-            (val) => userData.role = val,
           ),
           _buildEditableField(
             'Gender',
@@ -186,15 +267,28 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
               userData.experience ?? '',
               (val) => userData.experience = val,
             ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: ElevatedButton(
               onPressed: _saveProfile,
-              child: Text('Save Changes'),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 14),
+                child: Text(
+                  'SAVE CHANGES',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 2,
+              ),
             ),
           ),
+          const SizedBox(height: 20),
         ],
       ),
     );

@@ -74,11 +74,10 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       });
     } catch (e) {
       setState(() => isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to load orders: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Failed to load orders: $e")));
     }
-
   }
 
   Uint8List _decodeBase64(String base64String) {
@@ -107,8 +106,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           .doc('workers')
           .collection('workers')
           .doc(widget.userId)
-      .collection('order')
-      .doc(postId)
+          .collection('order')
+          .doc(postId)
           .delete();
 
       ScaffoldMessenger.of(
@@ -122,7 +121,6 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       );
     }
   }
-
 
   Future<void> _editOrder(String postId, String currentDescription) async {
     TextEditingController _editController = TextEditingController(
@@ -174,7 +172,6 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                     ),
                   );
                 }
-
               },
               child: const Text('Save'),
             ),
@@ -188,125 +185,154 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-        onRefresh: _loadOrders,
-        child: orders.isEmpty
-            ? ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          children: const [
-            SizedBox(height: 120),
-            Icon(Icons.inbox_rounded, size: 80, color: Colors.grey),
-            SizedBox(height: 12),
-            Center(
-              child: Text(
-                "No orders found",
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-            ),
-          ],
-        )
-            : ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: orders.length,
-          itemBuilder: (context, index) {
-            final order = orders[index];
-            return Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              elevation: 5,
-              margin: const EdgeInsets.only(bottom: 16),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            "Order ID: ${order.orderId}",
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[800],
+      body:
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : RefreshIndicator(
+                onRefresh: _loadOrders,
+                child:
+                    orders.isEmpty
+                        ? ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          children: const [
+                            SizedBox(height: 120),
+                            Icon(
+                              Icons.inbox_rounded,
+                              size: 80,
+                              color: Colors.grey,
                             ),
-                          ),
-                        ),
-                        PopupMenuButton<String>(
-                          onSelected: (value) {
-                            if (value == 'edit') {
-                              _editOrder(order.id, order.description);
-                            } else if (value == 'delete') {
-                              _deleteOrder(order.id);
-                            }
-                          },
-                          icon: const Icon(Icons.more_vert),
-                          itemBuilder: (BuildContext context) => [
-                            const PopupMenuItem(
-                              value: 'edit',
-                              child: Text('Edit'),
-                            ),
-                            const PopupMenuItem(
-                              value: 'delete',
-                              child: Text('Delete'),
+                            SizedBox(height: 12),
+                            Center(
+                              child: Text(
+                                "No orders found",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey,
+                                ),
+                              ),
                             ),
                           ],
+                        )
+                        : ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: orders.length,
+                          itemBuilder: (context, index) {
+                            final order = orders[index];
+                            return Card(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              elevation: 5,
+                              margin: const EdgeInsets.only(bottom: 16),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            "Order ID: ${order.orderId}",
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.grey[800],
+                                            ),
+                                          ),
+                                        ),
+                                        PopupMenuButton<String>(
+                                          onSelected: (value) {
+                                            if (value == 'edit') {
+                                              _editOrder(
+                                                order.id,
+                                                order.description,
+                                              );
+                                            } else if (value == 'delete') {
+                                              _deleteOrder(order.id);
+                                            }
+                                          },
+                                          icon: const Icon(Icons.more_vert),
+                                          itemBuilder:
+                                              (BuildContext context) => [
+                                                const PopupMenuItem(
+                                                  value: 'edit',
+                                                  child: Text('Edit'),
+                                                ),
+                                                const PopupMenuItem(
+                                                  value: 'delete',
+                                                  child: Text('Delete'),
+                                                ),
+                                              ],
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Row(
+                                      children: [
+                                        InkWell(
+                                          onTap:
+                                              () => _openFullImage(
+                                                order.imageBase64,
+                                              ),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            child:
+                                                order.imageBase64.isNotEmpty
+                                                    ? Image.memory(
+                                                      _decodeBase64(
+                                                        order.imageBase64,
+                                                      ),
+                                                      width: 100,
+                                                      height: 100,
+                                                      fit: BoxFit.cover,
+                                                    )
+                                                    : Container(
+                                                      width: 100,
+                                                      height: 100,
+                                                      color: Colors.grey[200],
+                                                      child: const Icon(
+                                                        Icons
+                                                            .image_not_supported,
+                                                        color: Colors.grey,
+                                                      ),
+                                                    ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Container(
+                                            padding: const EdgeInsets.all(10),
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey[100],
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            child: Text(
+                                              order.description,
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 14,
+                                              ),
+                                              maxLines: 4,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        InkWell(
-                          onTap: () => _openFullImage(order.imageBase64),
-                          borderRadius: BorderRadius.circular(12),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: order.imageBase64.isNotEmpty
-                                ? Image.memory(
-                              _decodeBase64(order.imageBase64),
-                              width: 100,
-                              height: 100,
-                              fit: BoxFit.cover,
-                            )
-                                : Container(
-                              width: 100,
-                              height: 100,
-                              color: Colors.grey[200],
-                              child: const Icon(Icons.image_not_supported, color: Colors.grey),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              order.description,
-                              style: GoogleFonts.poppins(fontSize: 14),
-                              maxLines: 4,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
               ),
-            );
-          },
-        ),
-      ),
     );
-
   }
 }
 

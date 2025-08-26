@@ -28,7 +28,7 @@ class _MapPageState extends State<MapPage> {
   Position? currentPosition;
   GoogleMapController? _mapController;
   double? distance;
- String googleAPIKey ="AIzaSyD2edYZVpcriijRUyOPuj1fVU4icLgGt2M";
+  String googleAPIKey = "AIzaSyD2edYZVpcriijRUyOPuj1fVU4icLgGt2M";
   Set<Polyline> _polylines = {};
 
   @override
@@ -37,6 +37,7 @@ class _MapPageState extends State<MapPage> {
     _getCurrentLocation();
     _getRoutePolyline();
   }
+
   Future<void> _getRoutePolyline() async {
     PolylinePoints polylinePoints = PolylinePoints();
     List<LatLng> polylineCoordinates = [];
@@ -55,24 +56,29 @@ class _MapPageState extends State<MapPage> {
         final route = data['routes'][0];
         final polyline = route['overview_polyline']['points'];
 
-        polylineCoordinates = polylinePoints
-            .decodePolyline(polyline)
-            .map((e) => LatLng(e.latitude, e.longitude))
-            .toList();
+        polylineCoordinates =
+            polylinePoints
+                .decodePolyline(polyline)
+                .map((e) => LatLng(e.latitude, e.longitude))
+                .toList();
 
         setState(() {
-          _polylines.add(Polyline(
-            polylineId: PolylineId("route"),
-            points: polylineCoordinates,
-            width: 4,
-            color: Colors.blue,
-          ));
+          _polylines.add(
+            Polyline(
+              polylineId: PolylineId("route"),
+              points: polylineCoordinates,
+              width: 4,
+              color: Colors.blue,
+            ),
+          );
         });
       }
     } else {
       print("Failed to get directions");
     }
-  }Future<void> _getCurrentLocation() async {
+  }
+
+  Future<void> _getCurrentLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       await Geolocator.openLocationSettings();
@@ -127,21 +133,23 @@ class _MapPageState extends State<MapPage> {
   }
 
   double _calculateDistance(
-      double lat1, double lon1, double lat2, double lon2) {
+    double lat1,
+    double lon1,
+    double lat2,
+    double lon2,
+  ) {
     const p = 0.017453292519943295; // PI / 180
-    final a = 0.5 -
+    final a =
+        0.5 -
         cos((lat2 - lat1) * p) / 2 +
-        cos(lat1 * p) * cos(lat2 * p) *
-            (1 - cos((lon2 - lon1) * p)) / 2;
+        cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2;
     return 12742 * asin(sqrt(a)); // 2 * R * asin...
   }
 
   @override
   Widget build(BuildContext context) {
     if (currentPosition == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     CameraPosition initialPosition = CameraPosition(
       target: LatLng(widget.latitude, widget.longitude),
@@ -176,10 +184,14 @@ class _MapPageState extends State<MapPage> {
       markers.add(
         Marker(
           markerId: MarkerId("you"),
-          position:
-          LatLng(currentPosition!.latitude, currentPosition!.longitude),
+          position: LatLng(
+            currentPosition!.latitude,
+            currentPosition!.longitude,
+          ),
           infoWindow: InfoWindow(title: "You"),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueAzure,
+          ),
         ),
       );
     }
@@ -191,7 +203,7 @@ class _MapPageState extends State<MapPage> {
           GoogleMap(
             initialCameraPosition: initialPosition,
             markers: markers,
-           polylines: _polylines,
+            polylines: _polylines,
             onMapCreated: (controller) {
               _mapController = controller;
             },
