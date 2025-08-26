@@ -335,7 +335,7 @@ class _WorkerpageState extends State<Workerpage> {
             _selectedIndex == 0
                 ? 'Welcome, ${userData.name}'
                 : _selectedIndex == 1
-                ? 'Job Status'
+                ? 'Job status'
                 : 'Messages',
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
           ),
