@@ -75,6 +75,18 @@ class _MessagesPageState extends State<MessagesPage> {
     );
   }
 
+  // 🔹 Count only unread messages from worker
+  Stream<int> _getUnreadCount(String workerId, String postId) {
+    return FirebaseFirestore.instance
+        .collection('chats')
+        .doc('${workerId}_${widget.jobProviderId}_${postId}')
+        .collection('messages')
+        .where('from', isEqualTo: workerId) // only worker messages
+        .where('isRead', isEqualTo: false) // only unread ones
+        .snapshots()
+        .map((snap) => snap.docs.length);
+  }
+
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
@@ -107,25 +119,59 @@ class _MessagesPageState extends State<MessagesPage> {
                 itemCount: messages.length,
                 itemBuilder: (context, index) {
                   final msg = messages[index];
-                  return ListTile(
-                    leading: const Icon(Icons.message, color: Colors.blue),
-                    title: Text(msg['message']),
-                    subtitle: Text(
-                      'Worker ID: ${msg['workerId']} • Post ID: ${msg['postId']}',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                    trailing:
-                        msg['timestamp'] != null
-                            ? Text(
-                              _formatTimestamp(msg['timestamp']),
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 11,
+                  final bool isInterested = msg['message']
+                      .toString()
+                      .toLowerCase()
+                      .contains('i am interested');
+
+                  return StreamBuilder<int>(
+                    stream: _getUnreadCount(msg['workerId'], msg['postId']),
+                    builder: (context, snapshot) {
+                      final unreadCount = snapshot.data ?? 0;
+                      return ListTile(
+                        leading: const Icon(Icons.message, color: Colors.blue),
+                        title: Text(msg['message']),
+                        subtitle: Text(
+                          'Worker ID: ${msg['workerId']} • Post ID: ${msg['postId']}',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (msg['timestamp'] != null)
+                              Text(
+                                _formatTimestamp(msg['timestamp']),
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 11,
+                                ),
                               ),
-                            )
-                            : null,
-                    onTap: () {
-                      _openChat(msg['workerId'], msg['postId']);
+                            const SizedBox(width: 6),
+                            if (unreadCount > 0)
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Text(
+                                  unreadCount.toString(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        onTap:
+                            isInterested
+                                ? () {
+                                  _openChat(msg['workerId'], msg['postId']);
+                                }
+                                : null,
+                      );
                     },
                   );
                 },

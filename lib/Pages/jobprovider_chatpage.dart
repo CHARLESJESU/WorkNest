@@ -43,14 +43,55 @@ class _ChatPageState extends State<ChatPage> {
     return '${dt.day}/${dt.month}/${dt.year} • ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
   }
 
+  // 🔹 Count only messages sent by the worker
+  Stream<int> _workerMessageCount() {
+    return FirebaseFirestore.instance
+        .collection('chats')
+        .doc(widget.postId)
+        .collection('messages')
+        .where('from', isEqualTo: widget.workerId)
+        .snapshots()
+        .map((snap) => snap.docs.length);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Chat with Worker"),
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
         elevation: 0,
+        title: Row(
+          children: [
+            const Text("Chat with Worker"),
+            const SizedBox(width: 8),
+            StreamBuilder<int>(
+              stream: _workerMessageCount(),
+              builder: (context, snapshot) {
+                final count = snapshot.data ?? 0;
+                if (count == 0) return const SizedBox();
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.green[800],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    count.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
       body: Column(
         children: [

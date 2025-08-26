@@ -159,13 +159,7 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
 
       await batch.commit();
 
-      if (newStatus == 'rejected') {
-        setState(() {
-          groupedApplications[orderId]!
-              .firstWhere((app) => app.userId == workerUserId)
-              .showDetails = false;
-        });
-      }
+      await fetchApplications(); // 🔹 Refresh page after status update
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Application $newStatus successfully')),
@@ -197,6 +191,10 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
         'timestamp': FieldValue.serverTimestamp(),
       });
 
+      await updateApplicationStatus(postId, workerUserId, 'confirmation');
+
+      await fetchApplications(); // 🔹 Refresh page after confirmation
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Confirmation sent to worker.')),
       );
@@ -215,6 +213,8 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
         return Colors.green;
       case 'rejected':
         return Colors.red;
+      case 'confirmation':
+        return Colors.orange;
       default:
         return Colors.grey;
     }
@@ -249,14 +249,18 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
           });
         },
         children:
-            workers.asMap().entries.map((entry) {
-              return _buildWorkerCard(
-                entry.value,
-                orderIndex,
-                entry.key,
-                orderId,
-              );
-            }).toList(),
+            workers
+                .asMap()
+                .entries
+                .map(
+                  (entry) => _buildWorkerCard(
+                    entry.value,
+                    orderIndex,
+                    entry.key,
+                    orderId,
+                  ),
+                )
+                .toList(),
       ),
     );
   }
@@ -269,6 +273,7 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
   ) {
     bool showDetails = worker.showDetails;
     String status = worker.status;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Card(
@@ -350,12 +355,15 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
                           Expanded(
                             child: ElevatedButton(
                               onPressed:
-                                  status == 'applied'
-                                      ? () => updateApplicationStatus(
-                                        orderId,
-                                        worker.userId,
-                                        'accepted',
-                                      )
+                                  (status == 'applied' ||
+                                          status == 'confirmation')
+                                      ? () async {
+                                        await updateApplicationStatus(
+                                          orderId,
+                                          worker.userId,
+                                          'accepted',
+                                        );
+                                      }
                                       : null,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green,
@@ -367,12 +375,15 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
                           Expanded(
                             child: ElevatedButton(
                               onPressed:
-                                  status == 'applied'
-                                      ? () => updateApplicationStatus(
-                                        orderId,
-                                        worker.userId,
-                                        'rejected',
-                                      )
+                                  (status == 'applied' ||
+                                          status == 'confirmation')
+                                      ? () async {
+                                        await updateApplicationStatus(
+                                          orderId,
+                                          worker.userId,
+                                          'rejected',
+                                        );
+                                      }
                                       : null,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red,
@@ -384,10 +395,14 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
                           Expanded(
                             child: ElevatedButton(
                               onPressed:
-                                  () => sendIndividualConfirmation(
-                                    worker.userId,
-                                    orderId,
-                                  ),
+                                  status == 'applied'
+                                      ? () async {
+                                        await sendIndividualConfirmation(
+                                          worker.userId,
+                                          orderId,
+                                        );
+                                      }
+                                      : null,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.orange,
                               ),

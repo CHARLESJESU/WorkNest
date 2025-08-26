@@ -10,7 +10,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:path_provider/path_provider.dart';
 
-
 class FormPage extends StatefulWidget {
   final String userId;
 
@@ -42,7 +41,6 @@ class _FormPageState extends State<FormPage> {
     }
   }
 
-
   Future<String?> compressAndConvertToBase64(String imagePath) async {
     try {
       // Get temporary directory
@@ -62,9 +60,9 @@ class _FormPageState extends State<FormPage> {
 
       // Validate compression result
       if (compressedFile == null || !await File(compressedFile.path).exists()) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Image compression failed.")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Image compression failed.")));
         return null;
       }
 
@@ -78,28 +76,29 @@ class _FormPageState extends State<FormPage> {
     }
   }
 
-
   String _generateOrderId() {
     const chars =
         'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final rand = Random.secure();
     final id =
-    List.generate(7, (index) => chars[rand.nextInt(chars.length)]).join();
+        List.generate(7, (index) => chars[rand.nextInt(chars.length)]).join();
     return id; // just the random string, no prefix here
   }
 
   Future<void> _uploadOrder() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("User not logged in")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("User not logged in")));
       return;
     }
 
     if (_imageFile == null || _descriptionController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Please select an image and enter a description")),
+        SnackBar(
+          content: Text("Please select an image and enter a description"),
+        ),
       );
       return;
     }
@@ -124,15 +123,13 @@ class _FormPageState extends State<FormPage> {
           .collection('workers')
           .doc(userId);
 
-// ✅ First, set a field in the user doc
-      await userDocRef.set(
-          {'summa': 1}, SetOptions(merge: true)); // merge to avoid overwrite
+      // ✅ First, set a field in the user doc
+      await userDocRef.set({
+        'summa': 1,
+      }, SetOptions(merge: true)); // merge to avoid overwrite
 
-// ✅ Then, add order to the subcollection
-      await userDocRef
-          .collection('order')
-          .doc(orderKey)
-          .set({
+      // ✅ Then, add order to the subcollection
+      await userDocRef.collection('order').doc(orderKey).set({
         'orderkey': orderKey,
         'description': _descriptionController.text,
         'imageBase64': base64Image,
@@ -146,17 +143,16 @@ class _FormPageState extends State<FormPage> {
       Future.delayed(Duration(seconds: 3), () {
         if (mounted) Navigator.of(context).pop();
       });
-    }catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to post job: $e")),
-      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Failed to post job: $e")));
     } finally {
       setState(() {
         _isUploading = false;
       });
     }
   }
-
 
   @override
   void dispose() {
@@ -199,29 +195,29 @@ class _FormPageState extends State<FormPage> {
                   SizedBox(height: 20),
                   _imageFile != null
                       ? Container(
-                    height: 200,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.file(
-                        _imageFile!,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  )
+                        height: 200,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(
+                            _imageFile!,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      )
                       : Container(
-                    height: 200,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey),
-                    ),
-                    child: Center(child: Text("No image selected")),
-                  ),
+                        height: 200,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey),
+                        ),
+                        child: Center(child: Text("No image selected")),
+                      ),
                   SizedBox(height: 20),
                   Center(
                     child: ElevatedButton.icon(
@@ -244,9 +240,9 @@ class _FormPageState extends State<FormPage> {
                     child: ElevatedButton(
                       onPressed: _isUploading ? null : _uploadOrder,
                       child:
-                      _isUploading
-                          ? CircularProgressIndicator(color: Colors.white)
-                          : Text("Post"),
+                          _isUploading
+                              ? CircularProgressIndicator(color: Colors.white)
+                              : Text("Post"),
                       style: ElevatedButton.styleFrom(
                         padding: EdgeInsets.symmetric(
                           horizontal: 32,
