@@ -103,11 +103,17 @@ class _JobproviderpageState extends State<Jobproviderpage> {
                 content: Text('Are you sure you want to exit?'),
                 actions: [
                   TextButton(
-                    child: Text('Cancel'),
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(color: Color(0xFF2563EB)),
+                    ),
                     onPressed: () => Navigator.of(context).pop(false),
                   ),
                   TextButton(
-                    child: Text('Exit'),
+                    child: Text(
+                      'Exit',
+                      style: TextStyle(color: Color(0xFF2563EB)),
+                    ),
                     onPressed: () => Navigator.of(context).pop(true),
                   ),
                 ],
@@ -151,7 +157,7 @@ class _JobproviderpageState extends State<Jobproviderpage> {
               fontSize: 25,
             ),
           ),
-          backgroundColor: Colors.blue,
+          backgroundColor: Color(0xFF2563EB),
           leading: IconButton(
             icon: _buildProfileAvatar(radius: 20),
             onPressed: () => _scaffoldKey.currentState?.openDrawer(),
@@ -175,14 +181,15 @@ class _JobproviderpageState extends State<Jobproviderpage> {
                       ),
                     );
                   },
-                  child: Icon(Icons.add),
-                  backgroundColor: Colors.blue,
+                  child: Icon(Icons.add, color: Colors.white),
+                  backgroundColor: Color(0xFF2563EB),
                 ),
               ),
           ],
         ),
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _selectedIndex,
+          selectedItemColor: Color(0xFF2563EB),
           onTap: (index) => setState(() => _selectedIndex = index),
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Orders'),
@@ -229,7 +236,7 @@ class _JobproviderpageState extends State<Jobproviderpage> {
                 ),
               ],
             ),
-            decoration: BoxDecoration(color: Colors.blueAccent),
+            decoration: BoxDecoration(color: Color(0xFF2563EB)),
           ),
           ListTile(
             leading: Icon(Icons.logout),
@@ -242,11 +249,17 @@ class _JobproviderpageState extends State<Jobproviderpage> {
                   actions: [
                     TextButton(
                       onPressed: () => Get.back(result: false),
-                      child: Text("Cancel"),
+                      child: Text(
+                        "Cancel",
+                        style: TextStyle(color: Color(0xFF2563EB)),
+                      ),
                     ),
                     TextButton(
                       onPressed: () => Get.back(result: true),
-                      child: Text("Confirm"),
+                      child: Text(
+                        "Confirm",
+                        style: TextStyle(color: Color(0xFF2563EB)),
+                      ),
                     ),
                   ],
                 ),

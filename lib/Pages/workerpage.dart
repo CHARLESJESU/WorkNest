@@ -39,6 +39,10 @@ class _WorkerpageState extends State<Workerpage> {
   String? selectedCity;
   List<String> availableCities = [];
 
+  // Add for back button logic
+  DateTime? _lastBackPressed;
+  int _backPressCounter = 0;
+
   @override
   void initState() {
     super.initState();
@@ -321,13 +325,61 @@ class _WorkerpageState extends State<Workerpage> {
     }
   }
 
+  Future<bool> _onWillPop() async {
+    DateTime now = DateTime.now();
+    if (_lastBackPressed == null ||
+        now.difference(_lastBackPressed!) > Duration(seconds: 2)) {
+      _lastBackPressed = now;
+      _backPressCounter = 1;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Press back again to confirm exit')),
+      );
+      return Future.value(false);
+    } else {
+      _backPressCounter++;
+      if (_backPressCounter >= 2) {
+        final shouldExit = await showDialog<bool>(
+          context: context,
+          builder:
+              (context) => AlertDialog(
+                title: Text('Exit App'),
+                content: Text('Are you sure you want to exit?'),
+                actions: [
+                  TextButton(
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(color: Color(0xFF2563EB)),
+                    ),
+                    onPressed: () => Navigator.of(context).pop(false),
+                  ),
+                  TextButton(
+                    child: Text(
+                      'Exit',
+                      style: TextStyle(color: Color(0xFF2563EB)),
+                    ),
+                    onPressed: () => Navigator.of(context).pop(true),
+                  ),
+                ],
+              ),
+        );
+        if (shouldExit == true) {
+          return true;
+        } else {
+          _backPressCounter = 0;
+          return false;
+        }
+      }
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final backController = Get.put(BackButtonController());
     final scaffoldKey = GlobalKey<ScaffoldState>();
 
     return WillPopScope(
-      onWillPop: backController.handleWillPop,
+      onWillPop: _onWillPop,
       child: Scaffold(
         key: scaffoldKey,
         appBar: AppBar(
@@ -337,22 +389,23 @@ class _WorkerpageState extends State<Workerpage> {
                 : _selectedIndex == 1
                 ? 'Job status'
                 : 'Messages',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 25,
+              color: Colors.white,
+            ),
           ),
-          backgroundColor: Colors.blueAccent,
+          backgroundColor: Color(0xFF2563EB),
           leading: IconButton(
             icon: _buildProfileAvatar(radius: 20),
             onPressed: () => scaffoldKey.currentState?.openDrawer(),
           ),
         ),
         drawer: buildDrawer(),
-        body: RefreshIndicator(
-          onRefresh: _loadPosts,
-          child: _buildMainContent(),
-        ),
+        body: _buildMainContent(),
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _selectedIndex,
-          selectedItemColor: Colors.blueAccent,
+          selectedItemColor: Color(0xFF2563EB),
           onTap: (index) => setState(() => _selectedIndex = index),
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
@@ -381,28 +434,10 @@ class _WorkerpageState extends State<Workerpage> {
             currentAccountPicture: Stack(
               children: [
                 _buildProfileAvatar(radius: 40),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: GestureDetector(
-                    onTap: _pickImage,
-                    child: Container(
-                      padding: const EdgeInsets.all(3),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.edit,
-                        size: 24,
-                        color: Colors.blueAccent,
-                      ),
-                    ),
-                  ),
-                ),
+                Positioned(bottom: 0, right: 0, child: GestureDetector()),
               ],
             ),
-            decoration: const BoxDecoration(color: Colors.blueAccent),
+            decoration: const BoxDecoration(color: Color(0xFF2563EB)),
           ),
           ListTile(
             leading: const Icon(Icons.person),
@@ -427,11 +462,17 @@ class _WorkerpageState extends State<Workerpage> {
                   actions: [
                     TextButton(
                       onPressed: () => Get.back(result: false),
-                      child: const Text("Cancel"),
+                      child: const Text(
+                        "Cancel",
+                        style: TextStyle(color: Color(0xFF2563EB)),
+                      ),
                     ),
                     TextButton(
                       onPressed: () => Get.back(result: true),
-                      child: const Text("Confirm"),
+                      child: const Text(
+                        "Confirm",
+                        style: TextStyle(color: Color(0xFF2563EB)),
+                      ),
                     ),
                   ],
                 ),

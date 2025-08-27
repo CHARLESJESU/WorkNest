@@ -39,6 +39,7 @@ class _MessagesPageState extends State<MessagesPage> {
         final data = doc.data();
         if (data['type'] == 'worker_response') {
           fetchedMessages.add({
+            'id': doc.id, // Store Firestore doc ID
             'workerId': data['from'] ?? 'Unknown',
             'postId': data['postId'] ?? 'Unknown',
             'message': data['message'] ?? 'No message',
@@ -87,98 +88,234 @@ class _MessagesPageState extends State<MessagesPage> {
         .map((snap) => snap.docs.length);
   }
 
+  Future<void> deleteMessage(String docId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('messages')
+          .doc(widget.jobProviderId)
+          .collection('inbox')
+          .doc(docId)
+          .delete();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Message deleted successfully')),
+      );
+      await fetchMessages();
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Failed to delete message')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: _refresh,
-      child:
-          isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : messages.isEmpty
-              ? ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.4),
-                  const Center(
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.mail_outline,
-                          size: 48,
-                          color: Colors.black54,
-                        ),
-                        SizedBox(height: 8),
-                        Text('No messages yet', style: TextStyle(fontSize: 14)),
-                      ],
+    return Scaffold(
+      appBar: AppBar(title: const Text("MESSAGES")),
+      body: RefreshIndicator(
+        onRefresh: _refresh,
+        child:
+            isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : messages.isEmpty
+                ? ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.4),
+                    const Center(
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.mail_outline,
+                            size: 48,
+                            color: Colors.black54,
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'No messages yet',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              )
-              : ListView.builder(
-                physics: const AlwaysScrollableScrollPhysics(),
-                itemCount: messages.length,
-                itemBuilder: (context, index) {
-                  final msg = messages[index];
-                  final bool isInterested = msg['message']
-                      .toString()
-                      .toLowerCase()
-                      .contains('i am interested');
-
-                  return StreamBuilder<int>(
-                    stream: _getUnreadCount(msg['workerId'], msg['postId']),
-                    builder: (context, snapshot) {
-                      final unreadCount = snapshot.data ?? 0;
-                      return ListTile(
-                        leading: const Icon(Icons.message, color: Colors.blue),
-                        title: Text(msg['message']),
-                        subtitle: Text(
-                          'Worker ID: ${msg['workerId']} • Post ID: ${msg['postId']}',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (msg['timestamp'] != null)
-                              Text(
-                                _formatTimestamp(msg['timestamp']),
-                                style: const TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 11,
+                  ],
+                )
+                : ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    final msg = messages[index];
+                    final bool isInterested = msg['message']
+                        .toString()
+                        .toLowerCase()
+                        .contains('i am interested');
+                    final docId = msg['id']; // Use Firestore doc ID
+                    return StreamBuilder<int>(
+                      stream: _getUnreadCount(msg['workerId'], msg['postId']),
+                      builder: (context, snapshot) {
+                        final unreadCount = snapshot.data ?? 0;
+                        return Card(
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'From Worker: ${msg['workerId']}',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Post ID: ${msg['postId']}',
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete,
+                                        color: Color(0xFF2563EB),
+                                      ),
+                                      tooltip: 'Delete',
+                                      onPressed: () async {
+                                        final confirm = await showDialog<bool>(
+                                          context: context,
+                                          builder:
+                                              (context) => AlertDialog(
+                                                title: const Text(
+                                                  'Delete Message',
+                                                ),
+                                                content: const Text(
+                                                  'Are you sure you want to delete this message?',
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed:
+                                                        () => Navigator.of(
+                                                          context,
+                                                        ).pop(false),
+                                                    child: const Text(
+                                                      'Cancel',
+                                                      style: TextStyle(
+                                                        color: Color(
+                                                          0xFF2563EB,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed:
+                                                        () => Navigator.of(
+                                                          context,
+                                                        ).pop(true),
+                                                    child: const Text(
+                                                      'Delete',
+                                                      style: TextStyle(
+                                                        color: Color(
+                                                          0xFF2563EB,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                        );
+                                        if (confirm == true) {
+                                          deleteMessage(docId);
+                                        }
+                                      },
+                                    ),
+                                    if (isInterested)
+                                      Stack(
+                                        clipBehavior: Clip.none,
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.message,
+                                              color: Color(0xFF2563EB),
+                                            ),
+                                            onPressed: () {
+                                              _openChat(
+                                                msg['workerId'],
+                                                msg['postId'],
+                                              );
+                                            },
+                                          ),
+                                          if (unreadCount > 0)
+                                            Positioned(
+                                              right: 4,
+                                              top: 4,
+                                              child: Container(
+                                                padding: const EdgeInsets.all(
+                                                  4,
+                                                ),
+                                                decoration: const BoxDecoration(
+                                                  color: Colors.red,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                constraints:
+                                                    const BoxConstraints(
+                                                      minWidth: 20,
+                                                      minHeight: 20,
+                                                    ),
+                                                child: Text(
+                                                  unreadCount.toString(),
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                  ],
                                 ),
-                              ),
-                            const SizedBox(width: 6),
-                            if (unreadCount > 0)
-                              Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: const BoxDecoration(
-                                  color: Colors.red,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Text(
-                                  unreadCount.toString(),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
+                                const SizedBox(height: 8),
+                                Text(msg['message']),
+                                if (msg['timestamp'] != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8),
+                                    child: Text(
+                                      _formatTimestamp(msg['timestamp']),
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 11,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        onTap:
-                            isInterested
-                                ? () {
-                                  _openChat(msg['workerId'], msg['postId']);
-                                }
-                                : null,
-                      );
-                    },
-                  );
-                },
-              ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+      ),
     );
   }
 
+  // Add this helper at the end of the class
   String _formatTimestamp(Timestamp timestamp) {
     final dateTime = timestamp.toDate();
     return '${dateTime.year}/${dateTime.month}/${dateTime.day} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';

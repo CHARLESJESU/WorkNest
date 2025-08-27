@@ -25,7 +25,7 @@ class _WorkerMessagesPageState extends State<WorkerMessagesPage> {
         .orderBy('timestamp', descending: true);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Messages")),
+      appBar: AppBar(title: const Text("MESSAGES")),
       body: StreamBuilder<QuerySnapshot>(
         stream: inboxRef.snapshots(),
         builder: (context, snapshot) {
@@ -76,10 +76,48 @@ class _WorkerMessagesPageState extends State<WorkerMessagesPage> {
                             ),
                           ),
                           IconButton(
-                            icon: Icon(Icons.delete, color: Colors.blue),
+                            icon: Icon(Icons.delete, color: Color(0xFF2563EB)),
                             tooltip: 'Delete',
-                            onPressed: () {
-                              deleteMessage(docs[index].id);
+                            onPressed: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder:
+                                    (context) => AlertDialog(
+                                      title: const Text('Delete Message'),
+                                      content: const Text(
+                                        'Are you sure you want to delete this message?',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed:
+                                              () => Navigator.of(
+                                                context,
+                                              ).pop(false),
+                                          child: const Text(
+                                            'Cancel',
+                                            style: TextStyle(
+                                              color: Color(0xFF2563EB),
+                                            ),
+                                          ),
+                                        ),
+                                        TextButton(
+                                          onPressed:
+                                              () => Navigator.of(
+                                                context,
+                                              ).pop(true),
+                                          child: const Text(
+                                            'Delete',
+                                            style: TextStyle(
+                                              color: Color(0xFF2563EB),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                              );
+                              if (confirm == true) {
+                                deleteMessage(docs[index].id);
+                              }
                             },
                           ),
                           if (showIcon)
@@ -103,7 +141,7 @@ class _WorkerMessagesPageState extends State<WorkerMessagesPage> {
                                         IconButton(
                                           icon: const Icon(
                                             Icons.message,
-                                            color: Colors.blue,
+                                            color: Color(0xFF2563EB),
                                           ),
                                           onPressed: () {
                                             _navigateToChat(postId, from);

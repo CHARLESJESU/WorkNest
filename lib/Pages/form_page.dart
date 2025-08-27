@@ -163,110 +163,200 @@ class _FormPageState extends State<FormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Post Job")),
+      appBar: AppBar(title: const Text("POST JOB")),
       body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
+          Center(
             child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Enter Description",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 8),
-                  Container(
-                    height: 100,
-                    child: TextField(
-                      controller: _descriptionController,
-                      maxLines: null,
-                      expands: true,
-                      decoration: InputDecoration(
-                        hintText: 'Type your description...',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        contentPadding: EdgeInsets.all(12),
-                      ),
+              child: Container(
+                margin: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 32,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      offset: const Offset(0, 2),
+                      blurRadius: 12,
+                      spreadRadius: 0,
                     ),
-                  ),
-                  SizedBox(height: 20),
-                  _imageFile != null
-                      ? Container(
-                        height: 200,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(12),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Gradient header with icon
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF2563EB), Color(0xFF3B82F6)],
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.file(
-                            _imageFile!,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(16),
+                          topRight: Radius.circular(16),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.assignment,
+                              color: Colors.white,
+                              size: 28,
+                            ),
                           ),
-                        ),
-                      )
-                      : Container(
-                        height: 200,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey),
-                        ),
-                        child: Center(child: Text("No image selected")),
-                      ),
-                  SizedBox(height: 20),
-                  Center(
-                    child: ElevatedButton.icon(
-                      onPressed: _pickImage,
-                      icon: Icon(Icons.image),
-                      label: Text("Pick Image"),
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                          const SizedBox(width: 12),
+                          const Text(
+                            "Create New Order",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  SizedBox(height: 16),
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: _isUploading ? null : _uploadOrder,
-                      child:
-                          _isUploading
-                              ? CircularProgressIndicator(color: Colors.white)
-                              : Text("Post"),
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 14,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Enter Description",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            height: 100,
+                            child: TextField(
+                              controller: _descriptionController,
+                              maxLines: null,
+                              expands: true,
+                              decoration: InputDecoration(
+                                hintText: 'Type your description...',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                contentPadding: const EdgeInsets.all(12),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          _imageFile != null
+                              ? Container(
+                                height: 200,
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.file(
+                                    _imageFile!,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              )
+                              : Container(
+                                height: 200,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.grey),
+                                ),
+                                child: const Center(
+                                  child: Text("No image selected"),
+                                ),
+                              ),
+                          const SizedBox(height: 20),
+                          Center(
+                            child: OutlinedButton.icon(
+                              onPressed: _pickImage,
+                              icon: const Icon(
+                                Icons.image,
+                                color: Color(0xFF2563EB),
+                              ),
+                              label: const Text(
+                                "Pick Image",
+                                style: TextStyle(color: Color(0xFF2563EB)),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(
+                                  color: Color(0xFF2563EB),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 12,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Center(
+                            child: ElevatedButton(
+                              onPressed: _isUploading ? null : _uploadOrder,
+                              child:
+                                  _isUploading
+                                      ? const CircularProgressIndicator(
+                                        color: Colors.white,
+                                      )
+                                      : const Text(
+                                        "Post",
+                                        style: TextStyle(
+                                          color: Color(0xFF2563EB),
+                                        ),
+                                      ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: const Color(0xFF2563EB),
+                                side: const BorderSide(
+                                  color: Color(0xFF2563EB),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 32,
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 2,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
                       ),
                     ),
-                  ),
-                  SizedBox(height: 100),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
-
           if (_showSuccessAnimation)
             Center(
               child: AnimatedOpacity(
-                duration: Duration(milliseconds: 500),
+                duration: const Duration(milliseconds: 500),
                 opacity: _showSuccessAnimation ? 1.0 : 0.0,
                 child: Container(
-                  padding: EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
@@ -274,27 +364,34 @@ class _FormPageState extends State<FormPage> {
                       BoxShadow(
                         color: Colors.black26,
                         blurRadius: 10,
-                        offset: Offset(0, 4),
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check_circle, color: Colors.green, size: 80),
-                      SizedBox(height: 12),
-                      Text(
+                      const Icon(
+                        Icons.check_circle,
+                        color: Colors.green,
+                        size: 80,
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
                         "Order placed successfully!",
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.green[700],
+                          color: Colors.green,
                         ),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(
                         "Order ID: $_generatedOrderId",
-                        style: TextStyle(fontSize: 16, color: Colors.black54),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.black54,
+                        ),
                       ),
                     ],
                   ),

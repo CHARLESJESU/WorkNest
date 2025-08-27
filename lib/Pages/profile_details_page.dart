@@ -163,7 +163,8 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Profile Details'),
-        backgroundColor: Colors.blue,
+        backgroundColor: Color(0xFF2563EB),
+        foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
       ),
@@ -192,7 +193,7 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
                     child: Container(
                       padding: EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: Colors.blue,
+                        color: Color(0xFF2563EB),
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 2),
                       ),
@@ -276,11 +277,15 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage> {
                 padding: EdgeInsets.symmetric(vertical: 14),
                 child: Text(
                   'SAVE CHANGES',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: Color(0xFF2563EB),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

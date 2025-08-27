@@ -19,6 +19,7 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
 
   Future<void> _sendMessage() async {
     final text = _controller.text.trim();
@@ -36,62 +37,32 @@ class _ChatPageState extends State<ChatPage> {
         });
 
     _controller.clear();
+
+    // Auto scroll to bottom after sending
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   String _formatTimestamp(Timestamp timestamp) {
     final dt = timestamp.toDate();
-    return '${dt.day}/${dt.month}/${dt.year} • ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
-  }
-
-  // 🔹 Count only messages sent by the worker
-  Stream<int> _workerMessageCount() {
-    return FirebaseFirestore.instance
-        .collection('chats')
-        .doc(widget.postId)
-        .collection('messages')
-        .where('from', isEqualTo: widget.workerId)
-        .snapshots()
-        .map((snap) => snap.docs.length);
+    return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')} • ${dt.day}/${dt.month}/${dt.year}';
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.green,
+        title: const Text('CHAT'),
+        backgroundColor: const Color(0xFF2563EB),
         foregroundColor: Colors.white,
         elevation: 0,
-        title: Row(
-          children: [
-            const Text("Chat with Worker"),
-            const SizedBox(width: 8),
-            StreamBuilder<int>(
-              stream: _workerMessageCount(),
-              builder: (context, snapshot) {
-                final count = snapshot.data ?? 0;
-                if (count == 0) return const SizedBox();
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.green[800],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    count.toString(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
       ),
       body: Column(
         children: [
@@ -112,19 +83,17 @@ class _ChatPageState extends State<ChatPage> {
                 final docs = snapshot.data!.docs;
 
                 return ListView.builder(
+                  controller: _scrollController,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
+                    horizontal: 8,
+                    vertical: 12,
                   ),
                   itemCount: docs.length,
                   itemBuilder: (context, index) {
                     final data = docs[index].data() as Map<String, dynamic>;
                     final isMe = data['from'] == widget.jobProviderId;
                     final msg = data['message'] ?? '';
-                    final time =
-                        data['timestamp'] != null
-                            ? _formatTimestamp(data['timestamp'])
-                            : '';
+                    final timestamp = data['timestamp'];
 
                     return Align(
                       alignment:
@@ -135,13 +104,25 @@ class _ChatPageState extends State<ChatPage> {
                           horizontal: 14,
                           vertical: 10,
                         ),
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.75,
+                        ),
                         decoration: BoxDecoration(
-                          color: isMe ? Colors.green[100] : Colors.grey[300],
+                          color:
+                              isMe
+                                  ? Colors.blue.shade100
+                                  : Colors.grey.shade200,
                           borderRadius: BorderRadius.only(
                             topLeft: const Radius.circular(14),
                             topRight: const Radius.circular(14),
-                            bottomLeft: Radius.circular(isMe ? 14 : 0),
-                            bottomRight: Radius.circular(isMe ? 0 : 14),
+                            bottomLeft:
+                                isMe
+                                    ? const Radius.circular(14)
+                                    : const Radius.circular(0),
+                            bottomRight:
+                                isMe
+                                    ? const Radius.circular(0)
+                                    : const Radius.circular(14),
                           ),
                         ),
                         child: Column(
@@ -150,10 +131,12 @@ class _ChatPageState extends State<ChatPage> {
                             Text(msg, style: const TextStyle(fontSize: 15)),
                             const SizedBox(height: 6),
                             Text(
-                              time,
-                              style: const TextStyle(
+                              timestamp != null
+                                  ? _formatTimestamp(timestamp)
+                                  : '',
+                              style: TextStyle(
                                 fontSize: 11,
-                                color: Colors.black54,
+                                color: Colors.grey.shade600,
                               ),
                             ),
                           ],
@@ -168,7 +151,7 @@ class _ChatPageState extends State<ChatPage> {
           const Divider(height: 1),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            color: Colors.grey[100],
+            color: Colors.grey.shade100,
             child: Row(
               children: [
                 Expanded(
@@ -177,12 +160,12 @@ class _ChatPageState extends State<ChatPage> {
                     textCapitalization: TextCapitalization.sentences,
                     decoration: InputDecoration(
                       hintText: 'Type a message...',
-                      filled: true,
-                      fillColor: Colors.white,
                       contentPadding: const EdgeInsets.symmetric(
                         vertical: 12,
                         horizontal: 16,
                       ),
+                      filled: true,
+                      fillColor: Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide.none,
@@ -194,7 +177,7 @@ class _ChatPageState extends State<ChatPage> {
                 Container(
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.green,
+                    color: Color(0xFF2563EB),
                   ),
                   child: IconButton(
                     icon: const Icon(Icons.send, color: Colors.white),

@@ -9,13 +9,20 @@ class JobStatusPage extends StatefulWidget {
   const JobStatusPage({Key? key, required this.userData}) : super(key: key);
 
   @override
-  _JobStatusPageState createState() => _JobStatusPageState();
+  State<JobStatusPage> createState() => _JobStatusPageState();
 }
 
 class _JobStatusPageState extends State<JobStatusPage> {
   List<Map<String, dynamic>> jobList = [];
   bool isLoading = true;
-  String selectedStatus = 'All';
+  String? selectedStatus;
+  final List<String> availableStatuses = [
+    'All',
+    'Accepted',
+    'Rejected',
+    'Applied',
+    'Confirmation',
+  ];
 
   @override
   void initState() {
@@ -63,7 +70,6 @@ class _JobStatusPageState extends State<JobStatusPage> {
         isLoading = false;
       });
     } catch (e) {
-      print("Error fetching applied jobs: $e");
       setState(() => isLoading = false);
     }
   }
@@ -140,13 +146,13 @@ class _JobStatusPageState extends State<JobStatusPage> {
   Color getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'accepted':
-        return Colors.green;
+        return const Color(0xFF10B981); // green
       case 'rejected':
-        return Colors.red;
+        return const Color(0xFFDC2626); // red
       case 'confirmation':
-        return Colors.blue;
+        return const Color(0xFF2563EB); // blue
       default:
-        return Colors.orange;
+        return const Color(0xFFF59E42); // orange
     }
   }
 
@@ -165,228 +171,453 @@ class _JobStatusPageState extends State<JobStatusPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Exiting Job Status Page')),
-        );
-        return true;
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text("Job Status"),
-          actions: [
-            DropdownButton<String>(
-              value: selectedStatus,
-              onChanged: (value) async {
-                if (value != null && value != selectedStatus) {
-                  final confirm = await showDialog<bool>(
-                    context: context,
-                    builder:
-                        (context) => AlertDialog(
-                          title: const Text('Change Filter'),
-                          content: Text(
-                            'Do you want to filter jobs by "$value"?',
+    final filteredJobs =
+        selectedStatus == null || selectedStatus == 'All'
+            ? jobList
+            : jobList
+                .where(
+                  (job) =>
+                      job['status'].toString().toLowerCase() ==
+                      selectedStatus!.toLowerCase(),
+                )
+                .toList();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("JOB STATUS"),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) async {
+              if (value == 'delete_all') {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder:
+                      (context) => AlertDialog(
+                        title: const Text('Delete All Jobs'),
+                        content: const Text(
+                          'Are you sure you want to delete all jobs?',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            child: const Text(
+                              'Cancel',
+                              style: TextStyle(color: Color(0xFF2563EB)),
+                            ),
                           ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(false),
-                              child: const Text('Cancel'),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            child: const Text(
+                              'Delete',
+                              style: TextStyle(color: Color(0xFF2563EB)),
                             ),
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(true),
-                              child: const Text('Yes'),
-                            ),
-                          ],
-                        ),
-                  );
-                  if (confirm == true) {
-                    setState(() {
-                      selectedStatus = value;
-                    });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Filter applied: $value')),
-                    );
-                  }
-                }
-              },
-              items:
-                  ['All', 'Accepted', 'Rejected', 'Applied', 'Confirmation']
-                      .map(
-                        (status) => DropdownMenuItem(
-                          value: status,
-                          child: Text(status),
-                        ),
-                      )
-                      .toList(),
-            ),
-            PopupMenuButton<String>(
-              onSelected: (value) async {
-                if (value == 'delete_all') {
-                  final confirm = await showDialog<bool>(
-                    context: context,
-                    builder:
-                        (context) => AlertDialog(
-                          title: const Text('Delete All Jobs'),
-                          content: const Text(
-                            'Are you sure you want to delete all jobs?',
                           ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(false),
-                              child: const Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(true),
-                              child: const Text('Delete'),
-                            ),
-                          ],
-                        ),
-                  );
-                  if (confirm == true) {
-                    await deleteAllJobs();
-                  }
-                }
-              },
-              itemBuilder:
-                  (context) => [
-                    const PopupMenuItem(
-                      value: 'delete_all',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete_forever, color: Colors.redAccent),
-                          SizedBox(width: 8),
-                          Text('Delete All'),
                         ],
+                      ),
+                );
+                if (confirm == true) {
+                  await deleteAllJobs();
+                }
+              }
+            },
+            itemBuilder:
+                (context) => [
+                  const PopupMenuItem(
+                    value: 'delete_all',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.delete_forever,
+                          color: Color.fromARGB(255, 251, 3, 3),
+                        ),
+                        SizedBox(width: 8),
+                        Text('Delete All'),
+                      ],
+                    ),
+                  ),
+                ],
+          ),
+        ],
+      ),
+      body:
+          isLoading
+              ? ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: 3,
+                itemBuilder: (context, index) => _buildLoadingCard(),
+              )
+              : jobList.isEmpty
+              ? _buildEmptyState()
+              : Column(
+                children: [
+                  _buildFilterSection(),
+                  _buildStatsCard(filteredJobs.length),
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: fetchAppliedJobs,
+                      color: const Color(0xFF2563EB),
+                      backgroundColor: Colors.white,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.only(top: 16, bottom: 100),
+                        itemCount: filteredJobs.length,
+                        itemBuilder: (context, index) {
+                          final job = filteredJobs[index];
+                          return _buildModernJobCard(context, job);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+    );
+  }
+
+  Widget _buildStatusFilterDropdown() {
+    return DropdownButtonHideUnderline(
+      child: DropdownButton<String?>(
+        value: selectedStatus ?? 'All',
+        icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF6B7280)),
+        items:
+            availableStatuses
+                .map(
+                  (status) => DropdownMenuItem<String?>(
+                    value: status,
+                    child: Text(
+                      status,
+                      style: const TextStyle(
+                        color: Color(0xFF111827),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                )
+                .toList(),
+        onChanged: (value) {
+          if (value != null && value != selectedStatus) {
+            setState(() {
+              selectedStatus = value;
+            });
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('Filter applied: $value')));
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildFilterSection() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            offset: const Offset(0, 2),
+            blurRadius: 8,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.filter_list, color: Color(0xFF2563EB), size: 20),
+          const SizedBox(width: 12),
+          Expanded(child: _buildStatusFilterDropdown()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsCard(int jobCount) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF1E40AF), Color(0xFF2563EB)],
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(
+              Icons.work_outline,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$jobCount Job Applications',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  selectedStatus == null || selectedStatus == 'All'
+                      ? 'All statuses'
+                      : 'Status: $selectedStatus',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.8),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModernJobCard(BuildContext context, Map<String, dynamic> job) {
+    final statusColor = getStatusColor(job['status']);
+    final statusIcon = getStatusIcon(job['status']);
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            offset: const Offset(0, 2),
+            blurRadius: 12,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF2563EB), Color(0xFF3B82F6)],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.business,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Job Provider ID: ${job['jobProviderId']}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF111827),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () async {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder:
+                          (context) => AlertDialog(
+                            title: const Text('Delete Job'),
+                            content: const Text(
+                              'Are you sure you want to delete this job?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed:
+                                    () => Navigator.of(context).pop(false),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed:
+                                    () => Navigator.of(context).pop(true),
+                                child: const Text('Delete'),
+                              ),
+                            ],
+                          ),
+                    );
+                    if (confirm == true) {
+                      deleteJob(job['jobProviderId'], job['postId']);
+                    }
+                  },
+                  icon: const Icon(
+                    Icons.delete,
+                    color: Color(0xFF2563EB),
+                    size: 20,
+                  ),
+                  style: IconButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB).withOpacity(0.1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Image if available
+          if (job['imageBase64'] != null &&
+              job['imageBase64'].toString().isNotEmpty)
+            Container(
+              height: 200,
+              width: double.infinity,
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.grey[100],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: GestureDetector(
+                  onTap:
+                      () => _showFullScreenImage(context, job['imageBase64']),
+                  child: Image.memory(
+                    base64Decode(job['imageBase64']),
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.grey[200],
+                        child: const Icon(
+                          Icons.image_not_supported,
+                          color: Colors.grey,
+                          size: 48,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+
+          // Content
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Job Description',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  job['description'] ?? '',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF6B7280),
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Icon(statusIcon, color: statusColor),
+                    const SizedBox(width: 6),
+                    Text(
+                      job['status'].toString().toUpperCase(),
+                      style: TextStyle(
+                        color: statusColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
                       ),
                     ),
                   ],
-            ),
-          ],
-        ),
-        body:
-            isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : jobList.isEmpty
-                ? const Center(child: Text('No job applications found.'))
-                : ListView.builder(
-                  padding: const EdgeInsets.all(30),
-                  itemCount: jobList.length,
-                  itemBuilder: (context, index) {
-                    final job = jobList[index];
-
-                    if (selectedStatus != 'All' &&
-                        job['status'].toString().toLowerCase() !=
-                            selectedStatus.toLowerCase()) {
-                      return const SizedBox.shrink();
-                    }
-
-                    final statusColor = getStatusColor(job['status']);
-                    final statusIcon = getStatusIcon(job['status']);
-
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 4,
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Job Provider ID: ${job['jobProviderId']}",
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.delete,
-                                    color: Colors.blue,
-                                  ),
-                                  tooltip: 'Delete this job',
-                                  onPressed: () async {
-                                    final confirm = await showDialog<bool>(
-                                      context: context,
-                                      builder:
-                                          (context) => AlertDialog(
-                                            title: const Text('Delete Job'),
-                                            content: const Text(
-                                              'Are you sure you want to delete this job?',
-                                            ),
-                                            actions: [
-                                              TextButton(
-                                                onPressed:
-                                                    () => Navigator.of(
-                                                      context,
-                                                    ).pop(false),
-                                                child: const Text('Cancel'),
-                                              ),
-                                              TextButton(
-                                                onPressed:
-                                                    () => Navigator.of(
-                                                      context,
-                                                    ).pop(true),
-                                                child: const Text('Delete'),
-                                              ),
-                                            ],
-                                          ),
-                                    );
-                                    if (confirm == true) {
-                                      deleteJob(
-                                        job['jobProviderId'],
-                                        job['postId'],
-                                      );
-                                    }
-                                  },
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            if (job['imageBase64'] != null &&
-                                job['imageBase64'].toString().isNotEmpty)
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Image.memory(
-                                  base64Decode(job['imageBase64']),
-                                  height: 120,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            const SizedBox(height: 8),
-                            Text(
-                              "Description: ${job['description']}",
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Icon(statusIcon, color: statusColor),
-                                const SizedBox(width: 6),
-                                Text(
-                                  "Status: ${job['status'].toString().toUpperCase()}",
-                                  style: TextStyle(
-                                    color: statusColor,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
                 ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingCard() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      height: 160,
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(16),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.work_off, size: 64, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          const Text(
+            'No job applications found.',
+            style: TextStyle(fontSize: 16, color: Color(0xFF6B7280)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFullScreenImage(BuildContext context, String imageBase64) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (_) => Scaffold(
+              backgroundColor: Colors.black,
+              appBar: AppBar(
+                backgroundColor: Colors.black,
+                iconTheme: const IconThemeData(color: Colors.white),
+                elevation: 0,
+              ),
+              body: Center(
+                child: InteractiveViewer(
+                  child: Image.memory(
+                    base64Decode(imageBase64),
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+            ),
       ),
     );
   }

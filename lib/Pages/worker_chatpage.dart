@@ -63,8 +63,8 @@ class _ChatPageState extends State<ChatPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chat'),
-        backgroundColor: Colors.blue,
+        title: const Text('CHAT'),
+        backgroundColor: Color(0xFF2563EB),
         foregroundColor: Colors.white,
       ),
       body: Column(
@@ -174,7 +174,7 @@ class _ChatPageState extends State<ChatPage> {
                 Container(
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.blue,
+                    color: Color(0xFF2563EB),
                   ),
                   child: IconButton(
                     icon: const Icon(Icons.send, color: Colors.white),
