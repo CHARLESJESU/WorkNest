@@ -196,7 +196,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     final filteredOrders = orders;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("ORDER DETAILS"), elevation: 0),
+      appBar: AppBar(title: const Text(""), elevation: 0),
       body:
           isLoading
               ? const SizedBox.shrink()

@@ -110,7 +110,6 @@ class _MessagesPageState extends State<MessagesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("MESSAGES")),
       body: RefreshIndicator(
         onRefresh: _refresh,
         child:

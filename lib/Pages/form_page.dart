@@ -163,7 +163,12 @@ class _FormPageState extends State<FormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("POST JOB")),
+      appBar: AppBar(
+        title: const Text("POST JOB"),
+        backgroundColor: const Color(0xFF2563EB),
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
       body: Stack(
         children: [
           Center(
@@ -373,7 +378,7 @@ class _FormPageState extends State<FormPage> {
                     children: [
                       const Icon(
                         Icons.check_circle,
-                        color: Colors.green,
+                        color: Color(0xFF2563EB),
                         size: 80,
                       ),
                       const SizedBox(height: 12),
@@ -382,7 +387,7 @@ class _FormPageState extends State<FormPage> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.green,
+                          color: Color(0xFF2563EB),
                         ),
                       ),
                       const SizedBox(height: 8),

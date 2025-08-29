@@ -67,18 +67,104 @@ class ApplicationsPage extends StatefulWidget {
 }
 
 class _ApplicationsPageState extends State<ApplicationsPage> {
+  Future<void> deleteOrder(String orderId) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      // Delete all workers under this order
+      final workersSnapshot =
+          await firestore
+              .collection('applications')
+              .doc(widget.jobProviderUserId)
+              .collection('posts')
+              .doc(orderId)
+              .collection('workers')
+              .get();
+
+      for (var workerDoc in workersSnapshot.docs) {
+        final workerUserId = workerDoc.id;
+        // Delete from appliedJobs
+        await firestore
+            .collection('appliedJobs')
+            .doc(workerUserId)
+            .collection('jobProviders')
+            .doc(widget.jobProviderUserId)
+            .collection('posts')
+            .doc(orderId)
+            .delete();
+      }
+
+      // Delete all workers subcollection
+      for (var workerDoc in workersSnapshot.docs) {
+        await workerDoc.reference.delete();
+      }
+
+      // Delete the order document itself
+      await firestore
+          .collection('applications')
+          .doc(widget.jobProviderUserId)
+          .collection('posts')
+          .doc(orderId)
+          .delete();
+
+      setState(() {
+        groupedApplications.remove(orderId);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Order deleted successfully')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to delete order: $e')));
+    }
+  }
+
+  Future<void> deleteApplicant(String orderId, String workerUserId) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      // Delete from applications
+      await firestore
+          .collection('applications')
+          .doc(widget.jobProviderUserId)
+          .collection('posts')
+          .doc(orderId)
+          .collection('workers')
+          .doc(workerUserId)
+          .delete();
+
+      // Delete from appliedJobs
+      await firestore
+          .collection('appliedJobs')
+          .doc(workerUserId)
+          .collection('jobProviders')
+          .doc(widget.jobProviderUserId)
+          .collection('posts')
+          .doc(orderId)
+          .delete();
+
+      setState(() {
+        final list = groupedApplications[orderId];
+        list?.removeWhere((a) => a.userId == workerUserId);
+        if (list == null || list.isEmpty) {
+          groupedApplications.remove(orderId);
+        }
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Applicant deleted successfully')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to delete applicant')),
+      );
+    }
+  }
+
   Map<String, List<Application>> groupedApplications = {};
   List<bool> showOrderDetails = [];
   bool isLoading = true;
   StreamSubscription? _subscription;
-  String? selectedStatus;
-  final List<String> availableStatuses = [
-    'All',
-    'Applied',
-    'Accepted',
-    'Rejected',
-    'Confirmation',
-  ];
 
   @override
   void initState() {
@@ -228,155 +314,11 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
     }
   }
 
-  List<Application> get _allApplicants {
-    return groupedApplications.values.expand((list) => list).toList();
-  }
-
-  List<Application> get _filteredApplicants {
-    if (selectedStatus == null || selectedStatus == 'All') {
-      return _allApplicants;
-    }
-    return _allApplicants
-        .where(
-          (app) => app.status.toLowerCase() == selectedStatus!.toLowerCase(),
-        )
-        .toList();
-  }
-
-  Widget _buildStatusFilterDropdown() {
-    return DropdownButtonHideUnderline(
-      child: DropdownButton<String?>(
-        value: selectedStatus ?? 'All',
-        icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF6B7280)),
-        items:
-            availableStatuses
-                .map(
-                  (status) => DropdownMenuItem<String?>(
-                    value: status,
-                    child: Text(
-                      status,
-                      style: const TextStyle(
-                        color: Color(0xFF111827),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                )
-                .toList(),
-        onChanged: (value) {
-          if (value != null && value != selectedStatus) {
-            setState(() {
-              selectedStatus = value;
-            });
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text('Filter applied: $value')));
-          }
-        },
-      ),
-    );
-  }
-
-  Widget _buildFilterSection() {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            offset: const Offset(0, 2),
-            blurRadius: 8,
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.filter_list, color: Color(0xFF2563EB), size: 20),
-          const SizedBox(width: 12),
-          Expanded(child: _buildStatusFilterDropdown()),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatsCard(int applicantCount) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF1E40AF), Color(0xFF2563EB)],
-        ),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              Icons.people_outline,
-              color: Colors.white,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '$applicantCount Applications',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(
-                  selectedStatus == null || selectedStatus == 'All'
-                      ? 'All statuses'
-                      : 'Status: $selectedStatus',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildOrderCard(
     String orderId,
     List<Application> workers,
     int orderIndex,
   ) {
-    // Filter workers by status if filter is applied
-    final filteredWorkers =
-        (selectedStatus == null || selectedStatus == 'All')
-            ? workers
-            : workers
-                .where(
-                  (w) =>
-                      w.status.toLowerCase() == selectedStatus!.toLowerCase(),
-                )
-                .toList();
-    if (filteredWorkers.isEmpty) return const SizedBox.shrink();
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -391,38 +333,124 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
           ),
         ],
       ),
-      child: ExpansionTile(
-        title: Text(
-          'Order ID: $orderId',
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF2563EB),
-          ),
-        ),
-        subtitle: Text(
-          '${filteredWorkers.length} Applicant${filteredWorkers.length == 1 ? '' : 's'}',
-          style: const TextStyle(fontSize: 14, color: Colors.grey),
-        ),
-        initiallyExpanded: showOrderDetails[orderIndex],
-        onExpansionChanged: (expanded) {
-          setState(() {
-            showOrderDetails[orderIndex] = expanded;
-          });
-        },
-        children:
-            filteredWorkers
-                .asMap()
-                .entries
-                .map(
-                  (entry) => _buildWorkerCard(
-                    entry.value,
-                    orderIndex,
-                    workers.indexOf(entry.value),
-                    orderId,
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: ExpansionTile(
+                  tilePadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
                   ),
-                )
-                .toList(),
+                  title: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF2563EB), Color(0xFF3B82F6)],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.business,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Order ID: $orderId',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF111827),
+                              ),
+                            ),
+                            Text(
+                              '${workers.length} Applicant${workers.length == 1 ? '' : 's'}',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF6B7280),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  initiallyExpanded: showOrderDetails[orderIndex],
+                  onExpansionChanged: (expanded) {
+                    setState(() {
+                      showOrderDetails[orderIndex] = expanded;
+                    });
+                  },
+                  children:
+                      workers
+                          .asMap()
+                          .entries
+                          .map(
+                            (entry) => _buildWorkerCard(
+                              entry.value,
+                              orderIndex,
+                              entry.key,
+                              orderId,
+                            ),
+                          )
+                          .toList(),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete, color: Color(0xFF2563EB)),
+                tooltip: 'Delete Order',
+                onPressed: () async {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder:
+                        (context) => AlertDialog(
+                          title: const Text('Delete Order'),
+                          content: const Text(
+                            'Are you sure you want to delete this order and all its applicants?',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: const Text(
+                                'Cancel',
+                                style: TextStyle(color: Color(0xFF2563EB)),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(true),
+                              child: const Text(
+                                'Delete',
+                                style: TextStyle(color: Color(0xFF2563EB)),
+                              ),
+                            ),
+                          ],
+                        ),
+                  );
+                  if (confirm == true) {
+                    await deleteOrder(orderId);
+                  }
+                },
+                style: IconButton.styleFrom(
+                  backgroundColor: Color(0xFF2563EB).withOpacity(0.08),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -435,29 +463,61 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
   ) {
     bool showDetails = worker.showDetails;
     String status = worker.status;
-    Color statusColor = getStatusColor(status);
+
+    final statusColor = getStatusColor(worker.status);
+    IconData statusIcon;
+    switch (worker.status.toLowerCase()) {
+      case 'accepted':
+        statusIcon = Icons.check_circle;
+        break;
+      case 'rejected':
+        statusIcon = Icons.cancel;
+        break;
+      case 'confirmation':
+        statusIcon = Icons.verified;
+        break;
+      default:
+        statusIcon = Icons.hourglass_top;
+    }
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.08),
-            offset: const Offset(0, 1),
-            blurRadius: 4,
+            offset: const Offset(0, 2),
+            blurRadius: 8,
             spreadRadius: 0,
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Row(
               children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF2563EB), Color(0xFF3B82F6)],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.person,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -465,30 +525,17 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
                       Text(
                         worker.name,
                         style: const TextStyle(
-                          fontSize: 15,
+                          fontSize: 16,
                           fontWeight: FontWeight.w600,
+                          color: Color(0xFF111827),
                         ),
                       ),
                       Text(
                         'User ID: ${worker.userId}',
                         style: const TextStyle(
                           fontSize: 13,
-                          color: Colors.grey,
+                          color: Color(0xFF6B7280),
                         ),
-                      ),
-                      Row(
-                        children: [
-                          Icon(Icons.circle, color: statusColor, size: 12),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Status: ${worker.status}',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: statusColor,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),
@@ -497,9 +544,7 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
                   icon: Icon(
                     showDetails ? Icons.expand_less : Icons.expand_more,
                     color:
-                        status == 'rejected'
-                            ? Colors.grey
-                            : const Color(0xFF2563EB),
+                        status == 'rejected' ? Colors.grey : Color(0xFF2563EB),
                   ),
                   onPressed:
                       status == 'rejected'
@@ -517,92 +562,162 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
                     ),
                   ),
                 ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Color(0xFFDC2626)),
+                  tooltip: 'Delete Applicant',
+                  onPressed: () async {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder:
+                          (context) => AlertDialog(
+                            title: const Text('Delete Applicant'),
+                            content: const Text(
+                              'Are you sure you want to delete this applicant?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed:
+                                    () => Navigator.of(context).pop(false),
+                                child: const Text(
+                                  'Cancel',
+                                  style: TextStyle(
+                                    color: Color.fromARGB(255, 235, 37, 37),
+                                  ),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed:
+                                    () => Navigator.of(context).pop(true),
+                                child: const Text(
+                                  'Delete',
+                                  style: TextStyle(
+                                    color: Color.fromARGB(255, 235, 37, 37),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                    );
+                    if (confirm == true) {
+                      await deleteApplicant(orderId, worker.userId);
+                    }
+                  },
+                  style: IconButton.styleFrom(
+                    backgroundColor: const Color(0xFFDC2626).withOpacity(0.08),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
               ],
             ),
-            if (showDetails && status != 'rejected')
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _detailText('Phone', worker.phoneNumber),
-                    _detailText('Experience', worker.experience),
-                    _detailText('Role', worker.role),
-                    _detailText('Gender', worker.gender),
-                    _detailText('DOB', worker.dob),
-                    _detailText('Country', worker.country),
-                    _detailText('State', worker.state),
-                    _detailText('District', worker.district),
-                    _detailText('City', worker.city),
-                    _detailText('Area', worker.area),
-                    _detailText('Address', worker.address),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed:
-                                (status == 'applied' ||
-                                        status == 'confirmation')
-                                    ? () async {
-                                      await updateApplicationStatus(
-                                        orderId,
-                                        worker.userId,
-                                        'accepted',
-                                      );
-                                    }
-                                    : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF10B981),
-                            ),
-                            child: const Text('Accept'),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed:
-                                (status == 'applied' ||
-                                        status == 'confirmation')
-                                    ? () async {
-                                      await updateApplicationStatus(
-                                        orderId,
-                                        worker.userId,
-                                        'rejected',
-                                      );
-                                    }
-                                    : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFDC2626),
-                            ),
-                            child: const Text('Reject'),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed:
-                                status == 'applied'
-                                    ? () async {
-                                      await sendIndividualConfirmation(
-                                        worker.userId,
-                                        orderId,
-                                      );
-                                    }
-                                    : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFF59E42),
-                            ),
-                            child: const Text('Confirmation'),
-                          ),
-                        ),
-                      ],
+          ),
+
+          if (showDetails && status != 'rejected')
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Details',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF111827),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 8),
+                  _detailText('Phone', worker.phoneNumber),
+                  _detailText('Experience', worker.experience),
+                  _detailText('Role', worker.role),
+                  _detailText('Gender', worker.gender),
+                  _detailText('DOB', worker.dob),
+                  _detailText('Country', worker.country),
+                  _detailText('State', worker.state),
+                  _detailText('District', worker.district),
+                  _detailText('City', worker.city),
+                  _detailText('Area', worker.area),
+                  _detailText('Address', worker.address),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Icon(statusIcon, color: statusColor),
+                      const SizedBox(width: 6),
+                      Text(
+                        worker.status.toUpperCase(),
+                        style: TextStyle(
+                          color: statusColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed:
+                              (status == 'applied' || status == 'confirmation')
+                                  ? () async {
+                                    await updateApplicationStatus(
+                                      orderId,
+                                      worker.userId,
+                                      'accepted',
+                                    );
+                                  }
+                                  : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF10B981),
+                          ),
+                          child: const Text('Accept'),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed:
+                              (status == 'applied' || status == 'confirmation')
+                                  ? () async {
+                                    await updateApplicationStatus(
+                                      orderId,
+                                      worker.userId,
+                                      'rejected',
+                                    );
+                                  }
+                                  : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFDC2626),
+                          ),
+                          child: const Text('Reject'),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed:
+                              status == 'applied'
+                                  ? () async {
+                                    await sendIndividualConfirmation(
+                                      worker.userId,
+                                      orderId,
+                                    );
+                                  }
+                                  : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFF59E42),
+                          ),
+                          child: const Text('Confirmation'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
@@ -644,63 +759,40 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("APPLICATIONS"), elevation: 0),
       body: Stack(
         children: [
           isLoading
-              ? ListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                itemCount: 3,
-                itemBuilder:
-                    (context, index) => Container(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      height: 160,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-              )
-              : _allApplicants.isEmpty
-              ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.work_off, size: 64, color: Colors.grey[400]),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'No applications yet',
-                      style: TextStyle(fontSize: 16, color: Color(0xFF6B7280)),
-                    ),
-                  ],
-                ),
-              )
-              : Column(
-                children: [
-                  _buildFilterSection(),
-                  _buildStatsCard(_filteredApplicants.length),
-                  Expanded(
-                    child: RefreshIndicator(
-                      onRefresh: fetchApplications,
-                      color: const Color(0xFF2563EB),
-                      backgroundColor: Colors.white,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.only(top: 16, bottom: 100),
-                        itemCount: groupedApplications.length,
-                        itemBuilder: (context, index) {
-                          String orderId = groupedApplications.keys.elementAt(
-                            index,
-                          );
-                          final workers = groupedApplications[orderId] ?? [];
-                          return _buildOrderCard(orderId, workers, index);
-                        },
-                      ),
-                    ),
-                  ),
-                ],
+              ? const Center(child: CircularProgressIndicator())
+              : RefreshIndicator(
+                onRefresh: fetchApplications,
+                child:
+                    groupedApplications.isEmpty
+                        ? ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          children: const [
+                            SizedBox(height: 150),
+                            Center(
+                              child: Icon(
+                                Icons.work_off,
+                                size: 50,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            Center(child: Text('No applications yet')),
+                          ],
+                        )
+                        : ListView.builder(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          itemCount: groupedApplications.length,
+                          itemBuilder: (context, index) {
+                            String orderId = groupedApplications.keys.elementAt(
+                              index,
+                            );
+                            final workers = groupedApplications[orderId] ?? [];
+                            return _buildOrderCard(orderId, workers, index);
+                          },
+                        ),
               ),
         ],
       ),

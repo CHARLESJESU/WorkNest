@@ -183,62 +183,6 @@ class _JobStatusPageState extends State<JobStatusPage> {
                 .toList();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("JOB STATUS"),
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: (value) async {
-              if (value == 'delete_all') {
-                final confirm = await showDialog<bool>(
-                  context: context,
-                  builder:
-                      (context) => AlertDialog(
-                        title: const Text('Delete All Jobs'),
-                        content: const Text(
-                          'Are you sure you want to delete all jobs?',
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(false),
-                            child: const Text(
-                              'Cancel',
-                              style: TextStyle(color: Color(0xFF2563EB)),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(true),
-                            child: const Text(
-                              'Delete',
-                              style: TextStyle(color: Color(0xFF2563EB)),
-                            ),
-                          ),
-                        ],
-                      ),
-                );
-                if (confirm == true) {
-                  await deleteAllJobs();
-                }
-              }
-            },
-            itemBuilder:
-                (context) => [
-                  const PopupMenuItem(
-                    value: 'delete_all',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.delete_forever,
-                          color: Color.fromARGB(255, 251, 3, 3),
-                        ),
-                        SizedBox(width: 8),
-                        Text('Delete All'),
-                      ],
-                    ),
-                  ),
-                ],
-          ),
-        ],
-      ),
       body:
           isLoading
               ? ListView.builder(
@@ -250,7 +194,137 @@ class _JobStatusPageState extends State<JobStatusPage> {
               ? _buildEmptyState()
               : Column(
                 children: [
-                  _buildFilterSection(),
+                  // Custom top bar with filter left, three-dot menu right
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: 16,
+                      left: 8,
+                      right: 8,
+                      bottom: 8,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Filter icon (left)
+                        IconButton(
+                          icon: const Icon(
+                            Icons.filter_list,
+                            color: Color(0xFF2563EB),
+                          ),
+                          tooltip: 'Filter',
+                          onPressed: () async {
+                            final value = await showDialog<String>(
+                              context: context,
+                              builder: (context) {
+                                return SimpleDialog(
+                                  title: const Text('Filter by Status'),
+                                  children:
+                                      availableStatuses.map((status) {
+                                        return SimpleDialogOption(
+                                          onPressed: () {
+                                            Navigator.of(context).pop(status);
+                                          },
+                                          child: Row(
+                                            children: [
+                                              if ((selectedStatus ?? 'All') ==
+                                                  status)
+                                                const Icon(
+                                                  Icons.check,
+                                                  color: Color(0xFF2563EB),
+                                                  size: 18,
+                                                )
+                                              else
+                                                const SizedBox(width: 18),
+                                              const SizedBox(width: 8),
+                                              Text(status),
+                                            ],
+                                          ),
+                                        );
+                                      }).toList(),
+                                );
+                              },
+                            );
+                            if (value != null && value != selectedStatus) {
+                              setState(() {
+                                selectedStatus = value;
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Filter applied: $value'),
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                        // Three-dot menu (delete all) right
+                        PopupMenuButton<String>(
+                          icon: const Icon(
+                            Icons.more_vert,
+                            color: Color(0xFF2563EB),
+                          ),
+                          onSelected: (value) async {
+                            if (value == 'delete_all') {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder:
+                                    (context) => AlertDialog(
+                                      title: const Text('Delete All Jobs'),
+                                      content: const Text(
+                                        'Are you sure you want to delete all jobs?',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed:
+                                              () => Navigator.of(
+                                                context,
+                                              ).pop(false),
+                                          child: const Text(
+                                            'Cancel',
+                                            style: TextStyle(
+                                              color: Color(0xFF2563EB),
+                                            ),
+                                          ),
+                                        ),
+                                        TextButton(
+                                          onPressed:
+                                              () => Navigator.of(
+                                                context,
+                                              ).pop(true),
+                                          child: const Text(
+                                            'Delete',
+                                            style: TextStyle(
+                                              color: Color(0xFF2563EB),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                              );
+                              if (confirm == true) {
+                                await deleteAllJobs();
+                              }
+                            }
+                          },
+                          itemBuilder:
+                              (context) => [
+                                const PopupMenuItem(
+                                  value: 'delete_all',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.delete_forever,
+                                        color: Color.fromARGB(255, 251, 3, 3),
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text('Delete All'),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                        ),
+                      ],
+                    ),
+                  ),
                   _buildStatsCard(filteredJobs.length),
                   Expanded(
                     child: RefreshIndicator(
@@ -269,67 +343,6 @@ class _JobStatusPageState extends State<JobStatusPage> {
                   ),
                 ],
               ),
-    );
-  }
-
-  Widget _buildStatusFilterDropdown() {
-    return DropdownButtonHideUnderline(
-      child: DropdownButton<String?>(
-        value: selectedStatus ?? 'All',
-        icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF6B7280)),
-        items:
-            availableStatuses
-                .map(
-                  (status) => DropdownMenuItem<String?>(
-                    value: status,
-                    child: Text(
-                      status,
-                      style: const TextStyle(
-                        color: Color(0xFF111827),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                )
-                .toList(),
-        onChanged: (value) {
-          if (value != null && value != selectedStatus) {
-            setState(() {
-              selectedStatus = value;
-            });
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text('Filter applied: $value')));
-          }
-        },
-      ),
-    );
-  }
-
-  Widget _buildFilterSection() {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            offset: const Offset(0, 2),
-            blurRadius: 8,
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.filter_list, color: Color(0xFF2563EB), size: 20),
-          const SizedBox(width: 12),
-          Expanded(child: _buildStatusFilterDropdown()),
-        ],
-      ),
     );
   }
 
