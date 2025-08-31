@@ -196,7 +196,6 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     final filteredOrders = orders;
 
     return Scaffold(
-      appBar: AppBar(title: const Text(""), elevation: 0),
       body:
           isLoading
               ? const SizedBox.shrink()
@@ -227,7 +226,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
 
   Widget _buildStatsCard(int orderCount) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -310,7 +309,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                   height: 48,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF2563EB), Color(0xFF3B82F6)],
+                      colors: [Color(0xFF2563EB), Color(0xFF2563EB)],
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),

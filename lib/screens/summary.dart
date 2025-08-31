@@ -84,7 +84,7 @@ class _Page5SummaryState extends State<Page5Summary> {
     }
 
     final userId = generatedUserId;
-    final sanitizedEmail = globalEmail.replaceAll('.', '_dot_');
+    final sanitizedEmail = globalEmail.replaceAll('.', 'dot');
 
     Map<String, dynamic> userDataMap = {
       "userId": userId,
@@ -109,7 +109,6 @@ class _Page5SummaryState extends State<Page5Summary> {
       final userType =
           widget.userData.role == "Worker" ? "workers" : "jobproviders";
 
-      // Firestore path: users/{userType}/{userId}
       final userDoc = FirebaseFirestore.instance
           .collection('users')
           .doc(userType)
@@ -118,7 +117,6 @@ class _Page5SummaryState extends State<Page5Summary> {
 
       await userDoc.set(userDataMap);
 
-      // Store sanitized email → userId mapping
       await FirebaseFirestore.instance
           .collection('emails')
           .doc(sanitizedEmail)
@@ -152,190 +150,310 @@ class _Page5SummaryState extends State<Page5Summary> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF4F6FB),
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.blue,
-        title: const Text(
-          'Profile Overview',
-          style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+        title: Row(
+          children: [
+            Icon(Icons.account_circle, color: Colors.white, size: 28),
+            SizedBox(width: 10),
+            Text(
+              'Profile Overview',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: 1.2,
+              ),
+            ),
+          ],
         ),
+        backgroundColor: const Color(0xFF2563EB),
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
+        ),
+        toolbarHeight: 65,
       ),
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    StepProgress(currentStep: 5, totalSteps: 5),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Review Your Details',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+              : Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 24,
                       ),
-                    ),
-                    const Divider(thickness: 1.0, height: 30),
-                    Center(
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          if (widget.userData.role == 'Worker')
-                            CircleAvatar(
-                              radius: 65,
-                              backgroundColor: Colors.grey[200],
-                              backgroundImage:
-                                  widget.userData.profileImage != null
-                                      ? FileImage(
-                                        File(widget.userData.profileImage!),
-                                      )
-                                      : null,
-                              child:
-                                  widget.userData.profileImage == null
-                                      ? const Icon(
-                                        Icons.person,
-                                        size: 65,
-                                        color: Colors.blue,
-                                      )
-                                      : null,
+                          StepProgress(currentStep: 5, totalSteps: 5),
+                          SizedBox(height: 32),
+                          Card(
+                            elevation: 6,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18),
                             ),
-                          const SizedBox(height: 12),
-                          const Text(
-                            'User ID',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.blue, width: 1),
-                            ),
-                            child:
-                                isUserIdLoading
-                                    ? const SizedBox(
-                                      height: 25,
-                                      width: 25,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                    : Text(
-                                      generatedUserId,
-                                      style: const TextStyle(
-                                        fontSize: 25,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.blue,
-                                      ),
-                                      textAlign: TextAlign.center,
+                            color: Colors.white,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 22,
+                                vertical: 28,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Center(
+                                    child: Column(
+                                      children: [
+                                        if (widget.userData.role == 'Worker')
+                                          CircleAvatar(
+                                            radius: 55,
+                                            backgroundColor: Colors.grey[200],
+                                            backgroundImage:
+                                                widget.userData.profileImage !=
+                                                        null
+                                                    ? FileImage(
+                                                      File(
+                                                        widget
+                                                            .userData
+                                                            .profileImage!,
+                                                      ),
+                                                    )
+                                                    : null,
+                                            child:
+                                                widget.userData.profileImage ==
+                                                        null
+                                                    ? const Icon(
+                                                      Icons.person,
+                                                      size: 55,
+                                                      color: Color(0xFF512DA8),
+                                                    )
+                                                    : null,
+                                          ),
+                                        SizedBox(height: 12),
+                                        Text(
+                                          'User ID',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                            color: Color(0xFF1A237E),
+                                          ),
+                                        ),
+                                        SizedBox(height: 4),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 8,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFEDE7F6),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            border: Border.all(
+                                              color: const Color(0xFF2563EB),
+                                              width: 1,
+                                            ),
+                                          ),
+                                          child:
+                                              isUserIdLoading
+                                                  ? const SizedBox(
+                                                    height: 25,
+                                                    width: 25,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                          strokeWidth: 2,
+                                                          color: Color(
+                                                            0xFF2563EB,
+                                                          ),
+                                                        ),
+                                                  )
+                                                  : Text(
+                                                    generatedUserId,
+                                                    style: const TextStyle(
+                                                      fontSize: 22,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Color(0xFF2563EB),
+                                                    ),
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                        ),
+                                      ],
                                     ),
+                                  ),
+                                  SizedBox(height: 28),
+                                  Text(
+                                    'Personal Information',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1A237E),
+                                    ),
+                                  ),
+                                  SizedBox(height: 16),
+                                  _buildInfoRow('User Id:', generatedUserId),
+                                  _buildInfoRow('Name:', widget.userData.name),
+                                  _buildInfoRow('Role:', widget.userData.role),
+                                  _buildInfoRow(
+                                    'Gender:',
+                                    widget.userData.gender,
+                                  ),
+                                  _buildInfoRow(
+                                    'DOB:',
+                                    widget.userData.dob
+                                            ?.toLocal()
+                                            .toString()
+                                            .split(' ')[0] ??
+                                        "Not Set",
+                                  ),
+                                  SizedBox(height: 24),
+                                  Text(
+                                    'Contact Details',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1A237E),
+                                    ),
+                                  ),
+                                  SizedBox(height: 16),
+                                  _buildInfoRow(
+                                    'Phone:',
+                                    widget.userData.phoneNumber,
+                                  ),
+                                  _buildInfoRow(
+                                    'Country:',
+                                    widget.userData.country,
+                                  ),
+                                  _buildInfoRow(
+                                    'State:',
+                                    widget.userData.state,
+                                  ),
+                                  _buildInfoRow(
+                                    'District:',
+                                    widget.userData.district,
+                                  ),
+                                  _buildInfoRow('City:', widget.userData.city),
+                                  _buildInfoRow('Area:', widget.userData.area),
+                                  _buildInfoRow(
+                                    'Address:',
+                                    widget.userData.address,
+                                  ),
+                                  if (widget.userData.role == 'Worker') ...[
+                                    SizedBox(height: 24),
+                                    Text(
+                                      'Experience',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1A237E),
+                                      ),
+                                    ),
+                                    SizedBox(height: 16),
+                                    _buildInfoRow(
+                                      'Experience:',
+                                      widget.userData.experience,
+                                    ),
+                                  ],
+                                  SizedBox(height: 24),
+                                  CheckboxListTile(
+                                    value: termsAccepted,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        termsAccepted = value ?? false;
+                                      });
+                                    },
+                                    controlAffinity:
+                                        ListTileControlAffinity.leading,
+                                    title: const Text(
+                                      'I accept the Terms & Conditions',
+                                    ),
+                                    contentPadding: EdgeInsets.zero,
+                                    activeColor: const Color(0xFF2563EB),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 25),
-                    const Text(
-                      'Personal Information',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    _buildInfoRow('User Id:', generatedUserId),
-                    _buildInfoRow('Name:', widget.userData.name),
-                    _buildInfoRow('Role:', widget.userData.role),
-                    _buildInfoRow('Gender:', widget.userData.gender),
-                    _buildInfoRow(
-                      'DOB:',
-                      widget.userData.dob?.toLocal().toString().split(' ')[0] ??
-                          "Not Set",
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Contact Details',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    _buildInfoRow('Phone:', widget.userData.phoneNumber),
-                    _buildInfoRow('Country:', widget.userData.country),
-                    _buildInfoRow('State:', widget.userData.state),
-                    _buildInfoRow('District:', widget.userData.district),
-                    _buildInfoRow('City:', widget.userData.city),
-                    _buildInfoRow('Area:', widget.userData.area),
-                    _buildInfoRow('Address:', widget.userData.address),
-                    if (widget.userData.role == 'Worker') ...[
-                      const SizedBox(height: 20),
-                      const Text(
-                        'Experience',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      _buildInfoRow('Experience:', widget.userData.experience),
-                    ],
-                    const SizedBox(height: 20),
-                    CheckboxListTile(
-                      value: termsAccepted,
-                      onChanged: (value) {
-                        setState(() {
-                          termsAccepted = value ?? false;
-                        });
-                      },
-                      controlAffinity: ListTileControlAffinity.leading,
-                      title: const Text('I accept the Terms & Conditions'),
-                      contentPadding: EdgeInsets.zero,
-                      activeColor: Colors.blue,
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
+                  ),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(18, 0, 18, 18),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Expanded(
-                          child: ElevatedButton(
+                        SizedBox(
+                          height: 54,
+                          child: ElevatedButton.icon(
                             onPressed: () => Navigator.pop(context),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
+                              backgroundColor: const Color(0xFF2563EB),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 32,
+                                vertical: 15,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 4,
+                              shadowColor: Color(0xFF2563EB).withOpacity(0.3),
                             ),
-                            child: const Text('Back'),
+                            icon: Icon(Icons.arrow_back, color: Colors.white),
+                            label: Text(
+                              'Back',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        SizedBox(width: 12),
                         Expanded(
-                          child: ElevatedButton(
-                            onPressed:
-                                (termsAccepted &&
-                                        !isUserIdLoading &&
-                                        !_isLoading)
-                                    ? _saveToFirebase
-                                    : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  (termsAccepted && !isUserIdLoading)
-                                      ? Colors.blue
-                                      : Colors.grey,
-                              foregroundColor: Colors.white,
+                          child: SizedBox(
+                            height: 54,
+                            child: ElevatedButton.icon(
+                              onPressed:
+                                  (termsAccepted &&
+                                          !isUserIdLoading &&
+                                          !_isLoading)
+                                      ? _saveToFirebase
+                                      : null,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    (termsAccepted && !isUserIdLoading)
+                                        ? const Color(0xFF2563EB)
+                                        : Colors.blue,
+                                padding: EdgeInsets.symmetric(vertical: 15),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 4,
+                                shadowColor: Color(0xFF2563EB).withOpacity(0.3),
+                              ),
+                              icon: Icon(Icons.check, color: Colors.white),
+                              label: Text(
+                                'Submit',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 1.1,
+                                ),
+                              ),
                             ),
-                            child: const Text('Submit'),
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
     );
   }
