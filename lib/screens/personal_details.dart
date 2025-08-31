@@ -66,7 +66,7 @@ class _Page2PersonalDetailsState extends State<Page2PersonalDetails> {
             color: Colors.white,
           ),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color(0xFF2563EB),
         elevation: 0,
       ),
       body: Column(
@@ -104,7 +104,7 @@ class _Page2PersonalDetailsState extends State<Page2PersonalDetails> {
                                 errorMessage = null;
                               });
                             },
-                            activeColor: Colors.blue,
+                            activeColor: const Color(0xFF2563EB),
                           );
                         }).toList(),
                   ),
@@ -158,7 +158,10 @@ class _Page2PersonalDetailsState extends State<Page2PersonalDetails> {
                               color: Colors.black87,
                             ),
                           ),
-                          Icon(Icons.calendar_today, color: Colors.blue),
+                          Icon(
+                            Icons.calendar_today,
+                            color: const Color(0xFF2563EB),
+                          ),
                         ],
                       ),
                     ),
@@ -190,7 +193,7 @@ class _Page2PersonalDetailsState extends State<Page2PersonalDetails> {
                 ElevatedButton.icon(
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
+                    backgroundColor: const Color(0xFF2563EB),
                     padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                   ),
                   icon: Icon(Icons.arrow_back, color: Colors.white),
@@ -199,7 +202,7 @@ class _Page2PersonalDetailsState extends State<Page2PersonalDetails> {
                 ElevatedButton.icon(
                   onPressed: _validateAndProceed,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
+                    backgroundColor: const Color(0xFF2563EB),
                     padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                   ),
                   icon: Icon(Icons.arrow_forward, color: Colors.white),

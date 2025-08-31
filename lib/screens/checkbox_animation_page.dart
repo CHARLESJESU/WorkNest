@@ -73,7 +73,7 @@ class _CheckboxAnimationPageState extends State<CheckboxAnimationPage> {
               height: isChecked ? 150 : 70,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isChecked ? Colors.blue : Colors.grey[300],
+                color: isChecked ? const Color(0xFF2563EB) : Colors.grey[300],
               ),
               child:
                   isChecked

@@ -29,7 +29,7 @@ class _Page1NameRoleState extends State<Page1NameRole> {
             color: Colors.white,
           ),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color(0xFF2563EB),
         elevation: 0,
       ),
       body: Column(
@@ -97,7 +97,7 @@ class _Page1NameRoleState extends State<Page1NameRole> {
                               widget.userData.role = value!;
                             });
                           },
-                          activeColor: Colors.blue,
+                          activeColor: const Color(0xFF2563EB),
                         ),
                         RadioListTile<String>(
                           title: Text(
@@ -112,7 +112,7 @@ class _Page1NameRoleState extends State<Page1NameRole> {
                               widget.userData.role = value!;
                             });
                           },
-                          activeColor: Colors.blue,
+                          activeColor: const Color(0xFF2563EB),
                         ),
                       ],
                     ),
@@ -154,7 +154,7 @@ class _Page1NameRoleState extends State<Page1NameRole> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: const Color(0xFF2563EB),
                   padding: EdgeInsets.symmetric(vertical: 15),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),

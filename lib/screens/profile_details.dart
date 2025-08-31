@@ -70,7 +70,7 @@ class _Page4ProfileDetailsState extends State<Page4ProfileDetails> {
             color: Colors.white,
           ),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color(0xFF2563EB),
       ),
       body: Column(
         children: [
@@ -111,7 +111,7 @@ class _Page4ProfileDetailsState extends State<Page4ProfileDetails> {
                                 ? Icon(
                                   Icons.camera_alt,
                                   size: 35,
-                                  color: Colors.blue,
+                                  color: const Color(0xFF2563EB),
                                 )
                                 : null,
                       ),
@@ -184,7 +184,7 @@ class _Page4ProfileDetailsState extends State<Page4ProfileDetails> {
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: const Color(0xFF2563EB),
                       padding: EdgeInsets.symmetric(vertical: 15),
                     ),
                     child: Text('Back', style: TextStyle(color: Colors.white)),
@@ -195,7 +195,7 @@ class _Page4ProfileDetailsState extends State<Page4ProfileDetails> {
                   child: ElevatedButton(
                     onPressed: _validateAndProceed,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: const Color(0xFF2563EB),
                       padding: EdgeInsets.symmetric(vertical: 15),
                     ),
                     child: Text('Next', style: TextStyle(color: Colors.white)),

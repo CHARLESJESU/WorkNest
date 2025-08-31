@@ -43,7 +43,9 @@ class _Page5SummaryState extends State<Page5Summary> {
   Future<String> _generateUniqueUserId(String role) async {
     String prefix = role == 'Worker' ? 'WO' : 'JO';
 
-    final metaDoc = FirebaseFirestore.instance.collection('meta').doc('lastUserId');
+    final metaDoc = FirebaseFirestore.instance
+        .collection('meta')
+        .doc('lastUserId');
     final snapshot = await metaDoc.get();
 
     int lastId = 1000;
@@ -97,15 +99,15 @@ class _Page5SummaryState extends State<Page5Summary> {
       "city": widget.userData.city,
       "area": widget.userData.area,
       "address": widget.userData.address,
-      "experience": widget.userData.role == 'Worker'
-          ? widget.userData.experience
-          : "N/A",
+      "experience":
+          widget.userData.role == 'Worker' ? widget.userData.experience : "N/A",
       "email-id": globalEmail,
       "profileImageBase64": base64Image ?? "No Image",
     };
 
     try {
-      final userType = widget.userData.role == "Worker" ? "workers" : "jobproviders";
+      final userType =
+          widget.userData.role == "Worker" ? "workers" : "jobproviders";
 
       // Firestore path: users/{userType}/{userId}
       final userDoc = FirebaseFirestore.instance
@@ -129,10 +131,11 @@ class _Page5SummaryState extends State<Page5Summary> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => CheckboxAnimationPage(
-            success: true,
-            userData: widget.userData,
-          ),
+          builder:
+              (context) => CheckboxAnimationPage(
+                success: true,
+                userData: widget.userData,
+              ),
         ),
       );
     } catch (error) {
@@ -146,13 +149,12 @@ class _Page5SummaryState extends State<Page5Summary> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color(0xFF2563EB),
         title: const Text(
           'Profile Overview',
           style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
@@ -215,7 +217,10 @@ class _Page5SummaryState extends State<Page5Summary> {
                             decoration: BoxDecoration(
                               color: Colors.blue.shade50,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.blue, width: 1),
+                              border: Border.all(
+                                color: const Color(0xFF2563EB),
+                                width: 1,
+                              ),
                             ),
                             child:
                                 isUserIdLoading
@@ -231,7 +236,7 @@ class _Page5SummaryState extends State<Page5Summary> {
                                       style: const TextStyle(
                                         fontSize: 25,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.blue,
+                                        color: const Color(0xFF2563EB),
                                       ),
                                       textAlign: TextAlign.center,
                                     ),
@@ -296,7 +301,7 @@ class _Page5SummaryState extends State<Page5Summary> {
                       controlAffinity: ListTileControlAffinity.leading,
                       title: const Text('I accept the Terms & Conditions'),
                       contentPadding: EdgeInsets.zero,
-                      activeColor: Colors.blue,
+                      activeColor: const Color(0xFF2563EB),
                     ),
                     const SizedBox(height: 10),
                     Row(
@@ -305,7 +310,7 @@ class _Page5SummaryState extends State<Page5Summary> {
                           child: ElevatedButton(
                             onPressed: () => Navigator.pop(context),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
+                              backgroundColor: const Color(0xFF2563EB),
                               foregroundColor: Colors.white,
                             ),
                             child: const Text('Back'),
@@ -323,7 +328,7 @@ class _Page5SummaryState extends State<Page5Summary> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor:
                                   (termsAccepted && !isUserIdLoading)
-                                      ? Colors.blue
+                                      ? const Color(0xFF2563EB)
                                       : Colors.grey,
                               foregroundColor: Colors.white,
                             ),

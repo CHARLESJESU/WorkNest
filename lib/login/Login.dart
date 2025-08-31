@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
-
 import '../Pages/jobproviderpage.dart';
 import '../Pages/workerpage.dart';
 import '../authendication/authentication.dart';
@@ -47,21 +46,19 @@ class _LoginScreenState extends State<LoginScreen> {
         password: passwordController.text,
       );
       String userType;
-    if (res == "success" && userexist=="not_existuser") {
-      // if (res == "success") {
+      if (res == "success" && userexist == "not_existuser") {
+        // if (res == "success") {
         globalEmail = emailController.text;
         setState(() {
           isLoading = false;
           errorMessage = '';
         });
         Navigator.of(context).pushReplacement(
-
           MaterialPageRoute(
             builder: (context) => Page1NameRole(userData: UserData()),
           ),
         );
-      }
-      else if(res == "success"){
+      } else if (res == "success") {
         setState(() {
           isLoading = false;
           errorMessage = '';
@@ -71,18 +68,20 @@ class _LoginScreenState extends State<LoginScreen> {
         } else {
           userType = "workers";
         }
-        final snapshot = await _firestore
-            .collection('users')
-            .doc(userType)
-            .collection(userType) // Assuming nested subcollection with same name
-            .doc(userexist)
-            .get();
+        final snapshot =
+            await _firestore
+                .collection('users')
+                .doc(userType)
+                .collection(
+                  userType,
+                ) // Assuming nested subcollection with same name
+                .doc(userexist)
+                .get();
 
-
-         final data = snapshot.data() as Map<String, dynamic>;
-          //
-          // Now you can use `data['fieldName']` safely
- // Ensure correct type
+        final data = snapshot.data() as Map<String, dynamic>;
+        //
+        // Now you can use `data['fieldName']` safely
+        // Ensure correct type
         final userData = UserData.fromJson(data);
         // Navigator.of(context).pushReplacement(
         //
@@ -91,16 +90,15 @@ class _LoginScreenState extends State<LoginScreen> {
         //   ),
         // );
         Widget nextPage =
-        userType == 'workers'
-            ? Workerpage(userData: userData)
-            : Jobproviderpage(userData: userData);
+            userType == 'workers'
+                ? Workerpage(userData: userData)
+                : Jobproviderpage(userData: userData);
 
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => nextPage),
         );
-      }
-      else {
+      } else {
         setState(() {
           isLoading = false;
           errorMessage =
@@ -188,7 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
                           fontSize: 14,
-                          color: Colors.blue,
+                          color: const Color(0xFF2563EB),
                         ),
                       ),
                     ),
@@ -219,7 +217,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             fontSize: 14,
-                            color: Colors.blue,
+                            color: const Color(0xFF2563EB),
                           ),
                         ),
                       ),
@@ -251,15 +249,18 @@ class _LoginScreenState extends State<LoginScreen> {
         return null;
       },
       decoration: InputDecoration(
-        prefixIcon: Icon(icon, color: Colors.blueAccent),
+        prefixIcon: Icon(icon, color: const Color(0xFF2563EB)),
         hintText: hintText,
         hintStyle: const TextStyle(color: Colors.black45, fontSize: 16),
         enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.blueAccent),
+          borderSide: const BorderSide(color: const Color(0xFF2563EB)),
           borderRadius: BorderRadius.circular(12),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.blue, width: 2),
+          borderSide: const BorderSide(
+            color: const Color(0xFF2563EB),
+            width: 2,
+          ),
           borderRadius: BorderRadius.circular(12),
         ),
         filled: true,
@@ -279,7 +280,7 @@ class _LoginScreenState extends State<LoginScreen> {
       child: ElevatedButton(
         onPressed: onTap,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue,
+          backgroundColor: const Color(0xFF2563EB),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
