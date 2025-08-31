@@ -59,146 +59,220 @@ class _Page4ProfileDetailsState extends State<Page4ProfileDetails> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: const Color(0xFFF4F6FB),
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text(
-          'Profile Info',
-          style: TextStyle(
-            fontSize: 25,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+        title: Row(
+          children: [
+            Icon(Icons.account_circle, color: Colors.white, size: 28),
+            SizedBox(width: 10),
+            Text(
+              'Profile Info',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: 1.2,
+              ),
+            ),
+          ],
         ),
         backgroundColor: const Color(0xFF2563EB),
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
+        ),
+        toolbarHeight: 65,
       ),
       body: Column(
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.all(20.0),
+              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   StepProgress(currentStep: 4, totalSteps: 5),
-
-                  SizedBox(height: 30),
-
-                  // 📸 Profile Picture Upload
-                  Text(
-                    'Upload Profile Picture',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 15),
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: Container(
-                      padding: EdgeInsets.all(4), // Border thickness
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.black,
-                          width: 1,
-                        ), // Black border
+                  SizedBox(height: 32),
+                  Card(
+                    elevation: 6,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    color: Colors.white,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 22,
+                        vertical: 28,
                       ),
-                      child: CircleAvatar(
-                        radius: 65,
-                        backgroundColor: Colors.grey[200],
-                        backgroundImage:
-                            _image != null ? FileImage(_image!) : null,
-                        child:
-                            _image == null
-                                ? Icon(
-                                  Icons.camera_alt,
-                                  size: 35,
-                                  color: const Color(0xFF2563EB),
-                                )
-                                : null,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Upload Profile Picture',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1A237E),
+                            ),
+                          ),
+                          SizedBox(height: 16),
+                          Center(
+                            child: GestureDetector(
+                              onTap: _pickImage,
+                              child: Container(
+                                padding: EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Color(0xFF2563EB),
+                                    width: 2,
+                                  ),
+                                ),
+                                child: CircleAvatar(
+                                  radius: 65,
+                                  backgroundColor: Colors.grey[100],
+                                  backgroundImage:
+                                      _image != null
+                                          ? FileImage(_image!)
+                                          : null,
+                                  child:
+                                      _image == null
+                                          ? Icon(
+                                            Icons.camera_alt,
+                                            size: 35,
+                                            color: const Color(0xFF2563EB),
+                                          )
+                                          : null,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 32),
+                          Text(
+                            'Years of Experience',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1A237E),
+                            ),
+                          ),
+                          SizedBox(height: 12),
+                          TextField(
+                            controller: experienceController,
+                            decoration: InputDecoration(
+                              labelText: 'Enter your years of experience',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Color(0xFF2563EB),
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Color(0xFF2563EB),
+                                  width: 2,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey[100],
+                            ),
+                            keyboardType: TextInputType.number,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black87,
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                errorMessage = null;
+                              });
+                            },
+                          ),
+                          if (errorMessage != null)
+                            Padding(
+                              padding: EdgeInsets.only(top: 10),
+                              child: Text(
+                                errorMessage!,
+                                style: TextStyle(
+                                  color: Colors.red[700],
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   ),
-
-                  SizedBox(height: 30),
-
-                  // 🏆 Experience Input Field
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Years of Experience',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-
-                  TextField(
-                    controller: experienceController,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Colors.grey[200],
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Colors.black,
-                          width: 2,
-                        ), // Black border
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      contentPadding: EdgeInsets.symmetric(
-                        vertical: 15,
-                        horizontal: 15,
-                      ),
-                    ),
-                    keyboardType: TextInputType.number,
-                    onChanged: (value) {
-                      setState(() {
-                        errorMessage = null;
-                      });
-                    },
-                  ),
-
-                  if (errorMessage != null)
-                    Padding(
-                      padding: EdgeInsets.only(top: 8),
-                      child: Text(
-                        errorMessage!,
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),
           ),
-
-          // 🔄 Fixed Navigation Buttons at Bottom
           Padding(
-            padding: EdgeInsets.all(16.0),
+            padding: EdgeInsets.fromLTRB(18, 0, 18, 18),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: ElevatedButton(
+                SizedBox(
+                  height: 54,
+                  child: ElevatedButton.icon(
                     onPressed: () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF2563EB),
-                      padding: EdgeInsets.symmetric(vertical: 15),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 15,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 4,
+                      shadowColor: Color(0xFF2563EB).withOpacity(0.3),
                     ),
-                    child: Text('Back', style: TextStyle(color: Colors.white)),
+                    icon: Icon(Icons.arrow_back, color: Colors.white),
+                    label: Text(
+                      'Back',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ),
-                SizedBox(width: 10),
+                SizedBox(width: 12),
                 Expanded(
-                  child: ElevatedButton(
-                    onPressed: _validateAndProceed,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2563EB),
-                      padding: EdgeInsets.symmetric(vertical: 15),
+                  child: SizedBox(
+                    height: 54,
+                    child: ElevatedButton.icon(
+                      onPressed: _validateAndProceed,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2563EB),
+                        padding: EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 4,
+                        shadowColor: Color(0xFF2563EB).withOpacity(0.3),
+                      ),
+                      icon: Icon(Icons.arrow_forward, color: Colors.white),
+                      label: Text(
+                        'Next',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.1,
+                        ),
+                      ),
                     ),
-                    child: Text('Next', style: TextStyle(color: Colors.white)),
                   ),
                 ),
               ],

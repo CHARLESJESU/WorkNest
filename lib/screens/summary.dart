@@ -154,7 +154,7 @@ class _Page5SummaryState extends State<Page5Summary> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: const Color(0xFF2563EB),
+        backgroundColor: Colors.blue,
         title: const Text(
           'Profile Overview',
           style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
@@ -217,10 +217,7 @@ class _Page5SummaryState extends State<Page5Summary> {
                             decoration: BoxDecoration(
                               color: Colors.blue.shade50,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: const Color(0xFF2563EB),
-                                width: 1,
-                              ),
+                              border: Border.all(color: Colors.blue, width: 1),
                             ),
                             child:
                                 isUserIdLoading
@@ -236,7 +233,7 @@ class _Page5SummaryState extends State<Page5Summary> {
                                       style: const TextStyle(
                                         fontSize: 25,
                                         fontWeight: FontWeight.bold,
-                                        color: const Color(0xFF2563EB),
+                                        color: Colors.blue,
                                       ),
                                       textAlign: TextAlign.center,
                                     ),
@@ -301,7 +298,7 @@ class _Page5SummaryState extends State<Page5Summary> {
                       controlAffinity: ListTileControlAffinity.leading,
                       title: const Text('I accept the Terms & Conditions'),
                       contentPadding: EdgeInsets.zero,
-                      activeColor: const Color(0xFF2563EB),
+                      activeColor: Colors.blue,
                     ),
                     const SizedBox(height: 10),
                     Row(
@@ -310,7 +307,7 @@ class _Page5SummaryState extends State<Page5Summary> {
                           child: ElevatedButton(
                             onPressed: () => Navigator.pop(context),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF2563EB),
+                              backgroundColor: Colors.blue,
                               foregroundColor: Colors.white,
                             ),
                             child: const Text('Back'),
@@ -328,7 +325,7 @@ class _Page5SummaryState extends State<Page5Summary> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor:
                                   (termsAccepted && !isUserIdLoading)
-                                      ? const Color(0xFF2563EB)
+                                      ? Colors.blue
                                       : Colors.grey,
                               foregroundColor: Colors.white,
                             ),
