@@ -25,7 +25,7 @@ class StepProgress extends StatelessWidget {
           child: LinearProgressIndicator(
             value: currentStep / totalSteps,
             backgroundColor: Colors.grey[300],
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+            valueColor: AlwaysStoppedAnimation<Color>(const Color(0xFF2563EB)),
             minHeight: 8,
           ),
         ),

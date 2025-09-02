@@ -25,7 +25,6 @@ class _WorkerMessagesPageState extends State<WorkerMessagesPage> {
         .orderBy('timestamp', descending: true);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("MESSAGES")),
       body: StreamBuilder<QuerySnapshot>(
         stream: inboxRef.snapshots(),
         builder: (context, snapshot) {

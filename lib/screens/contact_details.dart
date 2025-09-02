@@ -15,6 +15,7 @@ class Page3ContactDetails extends StatefulWidget {
 }
 
 class _Page3ContactDetailsState extends State<Page3ContactDetails> {
+  String? errorMessage;
   TextEditingController countryController = TextEditingController();
   TextEditingController stateController = TextEditingController();
   TextEditingController cityController = TextEditingController();
@@ -24,6 +25,9 @@ class _Page3ContactDetailsState extends State<Page3ContactDetails> {
 
   void _validateAndProceed() {
     String phone = phoneController.text.trim();
+    setState(() {
+      errorMessage = null;
+    });
 
     if (phone.isEmpty ||
         areaController.text.isEmpty ||
@@ -31,16 +35,16 @@ class _Page3ContactDetailsState extends State<Page3ContactDetails> {
         countryController.text.isEmpty ||
         stateController.text.isEmpty ||
         cityController.text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Please enter all details!')));
+      setState(() {
+        errorMessage = 'Please enter all details!';
+      });
       return;
     }
 
     if (phone.length != 10 || !RegExp(r'^[0-9]+$').hasMatch(phone)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Enter a valid 10-digit phone number!')),
-      );
+      setState(() {
+        errorMessage = 'Enter a valid 10-digit phone number!';
+      });
       return;
     }
 
@@ -51,6 +55,10 @@ class _Page3ContactDetailsState extends State<Page3ContactDetails> {
     widget.userData.city = cityController.text;
     widget.userData.area = areaController.text;
     widget.userData.address = addressController.text;
+
+    setState(() {
+      errorMessage = null;
+    });
 
     if (widget.userData.role == 'Worker') {
       Navigator.push(
@@ -72,131 +80,300 @@ class _Page3ContactDetailsState extends State<Page3ContactDetails> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF4F6FB),
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text(
-          'Contact Info',
-          style: TextStyle(
-            fontSize: 25,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+        title: Row(
+          children: [
+            Icon(Icons.account_circle, color: Colors.white, size: 28),
+            SizedBox(width: 10),
+            Text(
+              'Contact Info',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: 1.2,
+              ),
+            ),
+          ],
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color(0xFF2563EB),
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
+        ),
+        toolbarHeight: 65,
       ),
       body: Column(
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.all(16.0),
+              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 24),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   StepProgress(currentStep: 3, totalSteps: 5),
-
-                  SizedBox(height: 20),
-
-                  // 📞 Phone Number Input
-                  Text(
-                    'Enter your Phone Number',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 10),
-                  TextField(
-                    controller: phoneController,
-                    decoration: InputDecoration(
-                      labelText: 'Phone Number',
-                      prefixText: '+91 ',
-                      border: OutlineInputBorder(),
+                  SizedBox(height: 32),
+                  Card(
+                    elevation: 6,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
                     ),
-                    keyboardType: TextInputType.phone,
-                    maxLength: 10,
-                  ),
-
-                  SizedBox(height: 10),
-
-                  // 📍 Area Input
-                  Text(
-                    'Area',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 10),
-                  TextField(
-                    controller: areaController,
-                    decoration: InputDecoration(
-                      labelText: 'Enter your Area/Village name',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.text,
-                  ),
-
-                  SizedBox(height: 20),
-
-                  // 🏠 Full Address Input
-                  Text(
-                    'Full Address',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 10),
-                  TextField(
-                    controller: addressController,
-                    decoration: InputDecoration(
-                      labelText: 'Door no/Flat no/Street name',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.text,
-                  ),
-
-                  SizedBox(height: 20),
-
-                  // 🌍 Country, State, City Picker
-                  Text(
-                    'Select Country, State & City',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 10),
-                  CountryStateCityPicker(
-                    country: countryController,
-                    state: stateController,
-                    city: cityController,
-                    dialogColor: Colors.grey.shade200,
-                    textFieldDecoration: InputDecoration(
-                      fillColor: Colors.grey[200],
-                      filled: true,
-                      suffixIcon: Icon(Icons.arrow_drop_down),
-                      border: OutlineInputBorder(),
+                    color: Colors.white,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 22,
+                        vertical: 28,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Enter your Phone Number',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1A237E),
+                            ),
+                          ),
+                          if (errorMessage != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 10.0),
+                              child: Text(
+                                errorMessage!,
+                                style: TextStyle(
+                                  color: Colors.red[700],
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          SizedBox(height: 16),
+                          TextField(
+                            controller: phoneController,
+                            decoration: InputDecoration(
+                              labelText: 'Phone Number',
+                              prefixText: '+91 ',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Color(0xFF2563EB),
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Color(0xFF2563EB),
+                                  width: 2,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey[100],
+                            ),
+                            keyboardType: TextInputType.phone,
+                            maxLength: 10,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          SizedBox(height: 24),
+                          Text(
+                            'Area',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1A237E),
+                            ),
+                          ),
+                          SizedBox(height: 12),
+                          TextField(
+                            controller: areaController,
+                            decoration: InputDecoration(
+                              labelText: 'Enter your Area/Village name',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Color(0xFF2563EB),
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Color(0xFF2563EB),
+                                  width: 2,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey[100],
+                            ),
+                            keyboardType: TextInputType.text,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          SizedBox(height: 24),
+                          Text(
+                            'Full Address',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1A237E),
+                            ),
+                          ),
+                          SizedBox(height: 12),
+                          TextField(
+                            controller: addressController,
+                            decoration: InputDecoration(
+                              labelText: 'Door no/Flat no/Street name',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Color(0xFF2563EB),
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Color(0xFF2563EB),
+                                  width: 2,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey[100],
+                            ),
+                            keyboardType: TextInputType.text,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          SizedBox(height: 24),
+                          Text(
+                            'Select Country, State & City',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1A237E),
+                            ),
+                          ),
+                          SizedBox(height: 12),
+                          CountryStateCityPicker(
+                            country: countryController,
+                            state: stateController,
+                            city: cityController,
+                            dialogColor: Colors.grey.shade200,
+                            textFieldDecoration: InputDecoration(
+                              fillColor: Colors.grey[100],
+                              filled: true,
+                              suffixIcon: Icon(Icons.arrow_drop_down),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Color(0xFF2563EB),
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Color(0xFF2563EB),
+                                  width: 2,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
           ),
-
-          // 🔄 Fixed Navigation Buttons at Bottom
           Padding(
-            padding: EdgeInsets.all(16.0),
+            padding: EdgeInsets.fromLTRB(18, 0, 18, 18),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: ElevatedButton(
+                SizedBox(
+                  height: 54,
+                  child: ElevatedButton.icon(
                     onPressed: () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      padding: EdgeInsets.symmetric(vertical: 15),
+                      backgroundColor: const Color(0xFF2563EB),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 15,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 4,
+                      shadowColor: Color(0xFF2563EB).withOpacity(0.3),
                     ),
-                    child: Text('Back', style: TextStyle(color: Colors.white)),
+                    icon: Icon(Icons.arrow_back, color: Colors.white),
+                    label: Text(
+                      'Back',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ),
-                SizedBox(width: 10),
+                SizedBox(width: 12),
                 Expanded(
-                  child: ElevatedButton(
-                    onPressed: _validateAndProceed,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      padding: EdgeInsets.symmetric(vertical: 15),
+                  child: SizedBox(
+                    height: 54,
+                    child: ElevatedButton.icon(
+                      onPressed: _validateAndProceed,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2563EB),
+                        padding: EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 4,
+                        shadowColor: Color(0xFF2563EB).withOpacity(0.3),
+                      ),
+                      icon: Icon(Icons.arrow_forward, color: Colors.white),
+                      label: Text(
+                        'Next',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.1,
+                        ),
+                      ),
                     ),
-                    child: Text('Next', style: TextStyle(color: Colors.white)),
                   ),
                 ),
               ],

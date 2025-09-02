@@ -27,6 +27,7 @@ class _JobproviderpageState extends State<Jobproviderpage> {
   int _selectedIndex = 0;
   int _backPressCounter = 0;
   DateTime? _lastBackPressed;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -36,10 +37,10 @@ class _JobproviderpageState extends State<Jobproviderpage> {
   }
 
   void _initializePreferences() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isLoggedIn', true);
-    await prefs.setBool('worker', false);
-    await prefs.setString('userData', jsonEncode(widget.userData!.toJson()));
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setBool('isLoggedIn', true);
+  await prefs.setBool('worker', false);
+  await prefs.setString('userData', jsonEncode(widget.userData.toJson()));
   }
 
   Future<void> _pickImage() async {
@@ -142,19 +143,21 @@ class _JobproviderpageState extends State<Jobproviderpage> {
 
   @override
   Widget build(BuildContext context) {
-    final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
           title: Text(
-            'Welcome, ${userData.name}',
-            style: TextStyle(
+            _selectedIndex == 0
+                ? 'Welcome, ${userData.name}'
+                : _selectedIndex == 1
+                    ? 'Applications'
+                    : 'Messages',
+            style: const TextStyle(
               fontWeight: FontWeight.bold,
-              color: Colors.white,
               fontSize: 25,
+              color: Colors.white,
             ),
           ),
           backgroundColor: Color(0xFF2563EB),
@@ -176,8 +179,7 @@ class _JobproviderpageState extends State<Jobproviderpage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder:
-                            (_) => FormPage(userId: widget.userData.userId),
+                        builder: (_) => FormPage(userId: widget.userData.userId),
                       ),
                     );
                   },

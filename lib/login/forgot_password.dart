@@ -24,10 +24,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     String email = emailController.text;
 
     // Check if the email exists in Firestore
-    final userQuery = await FirebaseFirestore.instance
-        .collection('users')
-        .where('email', isEqualTo: email)
-        .get();
+    final userQuery =
+        await FirebaseFirestore.instance
+            .collection('users')
+            .where('email', isEqualTo: email)
+            .get();
 
     if (userQuery.docs.isNotEmpty) {
       setState(() {
@@ -45,7 +46,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       try {
         // Send a password reset email
         await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-        _showSuccessDialog("Password reset email has been sent. Please check your inbox.");
+        _showSuccessDialog(
+          "Password reset email has been sent. Please check your inbox.",
+        );
       } catch (e) {
         _showErrorDialog("An error occurred while sending the email.");
       }
@@ -94,8 +97,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Forgot Password",style: TextStyle(color: Colors.white),),
-        backgroundColor: Colors.blueAccent,
+        title: const Text(
+          "Forgot Password",
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: const Color(0xFF2563EB),
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -123,7 +129,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blueAccent,
+                            color: Color(0xFF2563EB),
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -139,7 +145,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           decoration: InputDecoration(
                             labelText: "Email Address",
                             hintText: "Enter your email",
-                            prefixIcon: const Icon(Icons.email, color: Colors.blueAccent),
+                            prefixIcon: const Icon(
+                              Icons.email,
+                              color: Color(0xFF2563EB),
+                            ),
                             filled: true,
                             fillColor: Colors.grey[100],
                             border: OutlineInputBorder(
@@ -150,7 +159,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Please enter your email';
-                            } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                            } else if (!RegExp(
+                              r'^[^@]+@[^@]+\.[^@]+',
+                            ).hasMatch(value)) {
                               return 'Enter a valid email';
                             }
                             return null;
@@ -160,7 +171,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         ElevatedButton(
                           onPressed: checkEmail,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blueAccent,
+                            backgroundColor: const Color(0xFF2563EB),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
@@ -168,7 +179,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           ),
                           child: const Text(
                             "Check Email",
-                            style: TextStyle(fontSize: 18,color: Colors.white),
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.white,
+                              backgroundColor: Color(0xFF2563EB),
+                            ),
                           ),
                         ),
                         if (emailExists) ...[
@@ -184,7 +199,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             ),
                             child: const Text(
                               "Send Reset Email",
-                              style: TextStyle(fontSize: 18,color: Colors.white),
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ],
