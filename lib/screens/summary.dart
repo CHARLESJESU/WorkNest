@@ -84,7 +84,7 @@ class _Page5SummaryState extends State<Page5Summary> {
     }
 
     final userId = generatedUserId;
-    final sanitizedEmail = globalEmail.replaceAll('.', 'dot');
+    final sanitizedEmail = globalEmail.replaceAll('.', '_dot_');
 
     Map<String, dynamic> userDataMap = {
       "userId": userId,
