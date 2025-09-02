@@ -45,8 +45,6 @@ class _Page1NameRoleState extends State<Page1NameRole> {
                     StepProgress(currentStep: 1, totalSteps: 5),
 
                     SizedBox(height: 30),
-
-                    // Name Input
                     Text(
                       'What Should We Call You?',
                       style: TextStyle(
