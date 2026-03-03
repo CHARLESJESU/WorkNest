@@ -33,9 +33,13 @@ class AuthServicews {
       }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
-        return "user-not-found"; // Custom error message for existing account
+        return "This email address is already registered. Please login or use a different email.";
+      } else if (e.code == 'weak-password') {
+        return "Password is too weak. Please choose a stronger password.";
+      } else if (e.code == 'invalid-email') {
+        return "The email address is badly formatted.";
       }
-      return e.message ?? "An unknown error occurred"; // Return general error message
+      return e.message ?? "An unknown error occurred";
     } catch (err) {
       return err.toString(); // Return any other error
     }
@@ -58,18 +62,17 @@ class AuthServicews {
           password: password,
         );
         final sanitizedEmail = email.replaceAll('.', '_dot_');
-        final snapshot = await FirebaseFirestore.instance
-            .collection('emails')
-            .doc(sanitizedEmail)
-            .get();
-        final snapshot1 = await FirebaseFirestore.instance
-            .collection('emails')
-            .get();
+        final snapshot =
+            await FirebaseFirestore.instance
+                .collection('emails')
+                .doc(sanitizedEmail)
+                .get();
+        final snapshot1 =
+            await FirebaseFirestore.instance.collection('emails').get();
         if (snapshot.exists) {
           // final storedUserId = snapshot.value;
-          userexist="existuser";
+          userexist = "existuser";
           print(userexist);
-
         }
         res = "success";
       } else {
@@ -80,34 +83,35 @@ class AuthServicews {
     }
     return res;
   }
+
   // LogIn user
   Future<String> existUser({
     required String email,
     required String password,
   }) async {
-
-    String userexist="not_existuser";
+    String userexist = "not_existuser";
 
     try {
       if (email.isNotEmpty && password.isNotEmpty) {
-
         final sanitizedEmail = email.replaceAll('.', '_dot_');
-        final snapshot = await FirebaseFirestore.instance
-            .collection('emails')
-            .doc(sanitizedEmail)
-            .get();
+        final snapshot =
+            await FirebaseFirestore.instance
+                .collection('emails')
+                .doc(sanitizedEmail)
+                .get();
 
         if (snapshot.exists) {
-          final storedUserId = snapshot.data()?['userId'];;
-          userexist="$storedUserId";
+          final storedUserId = snapshot.data()?['userId'];
+          ;
+          userexist = "$storedUserId";
         }
-
       }
     } catch (err) {
       return err.toString();
     }
     return userexist;
   }
+
   // For sign-out
   Future<void> signOut() async {
     await _auth.signOut();

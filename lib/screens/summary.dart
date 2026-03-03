@@ -43,7 +43,9 @@ class _Page5SummaryState extends State<Page5Summary> {
   Future<String> _generateUniqueUserId(String role) async {
     String prefix = role == 'Worker' ? 'WO' : 'JO';
 
-    final metaDoc = FirebaseFirestore.instance.collection('meta').doc('lastUserId');
+    final metaDoc = FirebaseFirestore.instance
+        .collection('meta')
+        .doc('lastUserId');
     final snapshot = await metaDoc.get();
 
     int lastId = 1000;
@@ -97,15 +99,15 @@ class _Page5SummaryState extends State<Page5Summary> {
       "city": widget.userData.city,
       "area": widget.userData.area,
       "address": widget.userData.address,
-      "experience": widget.userData.role == 'Worker'
-          ? widget.userData.experience
-          : "N/A",
+      "experience":
+          widget.userData.role == 'Worker' ? widget.userData.experience : "N/A",
       "email-id": globalEmail,
       "profileImageBase64": base64Image ?? "No Image",
     };
 
     try {
-      final userType = widget.userData.role == "Worker" ? "workers" : "jobproviders";
+      final userType =
+          widget.userData.role == "Worker" ? "workers" : "jobproviders";
 
       // Firestore path: users/{userType}/{userId}
       final userDoc = FirebaseFirestore.instance
@@ -129,10 +131,11 @@ class _Page5SummaryState extends State<Page5Summary> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => CheckboxAnimationPage(
-            success: true,
-            userData: widget.userData,
-          ),
+          builder:
+              (context) => CheckboxAnimationPage(
+                success: true,
+                userData: widget.userData,
+              ),
         ),
       );
     } catch (error) {
@@ -145,7 +148,6 @@ class _Page5SummaryState extends State<Page5Summary> {
       );
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
