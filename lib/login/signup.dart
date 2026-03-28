@@ -93,19 +93,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
         },
         decoration: InputDecoration(
           prefixIcon: Icon(icon, color: Colors.blueGrey),
-          suffixIcon: isPass
-              ? IconButton(
-            icon: Icon(
-              _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-              color: Colors.blueGrey,
-            ),
-            onPressed: () {
-              setState(() {
-                _isPasswordVisible = !_isPasswordVisible;
-              });
-            },
-          )
-              : null,
+          suffixIcon:
+              isPass
+                  ? IconButton(
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: Colors.blueGrey,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  )
+                  : null,
           hintText: hintText,
           hintStyle: const TextStyle(color: Colors.grey, fontSize: 16),
           enabledBorder: OutlineInputBorder(
@@ -124,14 +127,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   bool isValidPassword(String password) {
-    return RegExp(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&_])[A-Za-z\d@$!%*?&_]{8,}$')
-        .hasMatch(password);
+    return RegExp(
+      r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&_])[A-Za-z\d@$!%*?&_]{8,}$',
+    ).hasMatch(password);
   }
 
-  Widget _buildButton({
-    required VoidCallback onTap,
-    required String text,
-  }) {
+  Widget _buildButton({required VoidCallback onTap, required String text}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 15),
       child: ElevatedButton(
@@ -145,7 +146,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
         child: Text(
           text,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold,color: Colors.white),
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
       ),
     );
@@ -193,16 +198,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   _buildTextField(
                     controller: passwordController,
-                    hintText: 'Enter your password',
+                    hintText: 'Create your password',
                     icon: Icons.lock,
                     isPass: true,
                   ),
                   const SizedBox(height: 10),
                   Center(
-                    child: _buildButton(
-                      onTap: signUpUser,
-                      text: "Sign Up",
-                    ),
+                    child: _buildButton(onTap: signUpUser, text: "Sign Up"),
                   ),
                   const SizedBox(height: 10),
                   Center(
@@ -214,12 +216,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           style: TextStyle(fontSize: 16, color: Colors.black54),
                         ),
                         GestureDetector(
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const LoginScreen(),
-                            ),
-                          ),
+                          onTap:
+                              () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const LoginScreen(),
+                                ),
+                              ),
                           child: const Text(
                             "Login",
                             style: TextStyle(
