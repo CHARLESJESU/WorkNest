@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nivetha123/Pages/jobproviderpage.dart';
 import 'package:nivetha123/Pages/workerpage.dart';
 import 'package:nivetha123/screens/user_data.dart';
+import '../login/branding.dart';
 
 class CheckboxAnimationPage extends StatefulWidget {
   final bool success;
@@ -61,7 +62,7 @@ class _CheckboxAnimationPageState extends State<CheckboxAnimationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: WNColors.bg,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -73,7 +74,7 @@ class _CheckboxAnimationPageState extends State<CheckboxAnimationPage> {
               height: isChecked ? 150 : 70,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isChecked ? Colors.blue : Colors.grey[300],
+                color: isChecked ? WNColors.blue : Colors.grey[300],
               ),
               child:
                   isChecked
@@ -86,7 +87,11 @@ class _CheckboxAnimationPageState extends State<CheckboxAnimationPage> {
               widget.success
                   ? "Registration Successful!"
                   : "Please accept the Terms & Conditions.",
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: WNColors.navy,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 40),
@@ -94,6 +99,13 @@ class _CheckboxAnimationPageState extends State<CheckboxAnimationPage> {
             if (!widget.success)
               ElevatedButton(
                 onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: WNColors.blue,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
                 child: const Text("Go Back"),
               ),
           ],

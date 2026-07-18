@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nivetha123/screens/personal_details.dart';
 import 'package:nivetha123/screens/user_data.dart';
+import '../login/branding.dart';
 import '../widgets/step_progress.dart';
 
 class Page1NameRole extends StatefulWidget {
@@ -18,18 +19,18 @@ class _Page1NameRoleState extends State<Page1NameRole> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Full-screen background
+      backgroundColor: WNColors.bg,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text(
+        title: const Text(
           'User Profile',
           style: TextStyle(
-            fontSize: 25,
+            fontSize: 22,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: WNColors.navy,
         elevation: 0,
       ),
       body: Column(
@@ -52,18 +53,21 @@ class _Page1NameRoleState extends State<Page1NameRole> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: WNColors.navy,
                       ),
                     ),
                     SizedBox(height: 15),
                     TextFormField(
                       decoration: InputDecoration(
                         hintText: 'Your Name',
+                        prefixIcon: const Icon(Icons.person_outline, color: WNColors.blue),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                          borderRadius: BorderRadius.circular(14),
                         ),
                         filled: true,
-                        fillColor: Colors.grey[200],
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                       ),
                       validator:
                           (value) =>
@@ -81,40 +85,46 @@ class _Page1NameRoleState extends State<Page1NameRole> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: WNColors.navy,
                       ),
                     ),
                     SizedBox(height: 15),
-                    Column(
-                      children: [
-                        RadioListTile<String>(
-                          title: Text('Worker', style: TextStyle(fontSize: 16)),
-                          value: 'Worker',
-                          groupValue: selectedRole,
-                          onChanged: (value) {
-                            setState(() {
-                              selectedRole = value;
-                              widget.userData.role = value!;
-                            });
-                          },
-                          activeColor: Colors.blue,
-                        ),
-                        RadioListTile<String>(
-                          title: Text(
-                            'Job Provider',
-                            style: TextStyle(fontSize: 16),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Column(
+                        children: [
+                          RadioListTile<String>(
+                            title: Text('Worker', style: TextStyle(fontSize: 16)),
+                            value: 'Worker',
+                            groupValue: selectedRole,
+                            onChanged: (value) {
+                              setState(() {
+                                selectedRole = value;
+                                widget.userData.role = value!;
+                              });
+                            },
+                            activeColor: WNColors.blue,
                           ),
-                          value: 'Job Provider',
-                          groupValue: selectedRole,
-                          onChanged: (value) {
-                            setState(() {
-                              selectedRole = value;
-                              widget.userData.role = value!;
-                            });
-                          },
-                          activeColor: Colors.blue,
-                        ),
-                      ],
+                          RadioListTile<String>(
+                            title: Text(
+                              'Job Provider',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                            value: 'Job Provider',
+                            groupValue: selectedRole,
+                            onChanged: (value) {
+                              setState(() {
+                                selectedRole = value;
+                                widget.userData.role = value!;
+                              });
+                            },
+                            activeColor: WNColors.blue,
+                          ),
+                        ],
+                      ),
                     ),
 
                     if (selectedRole ==
@@ -144,25 +154,20 @@ class _Page1NameRoleState extends State<Page1NameRole> {
                       ),
                     );
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Please enter your name and select a role!',
-                        ),
-                      ),
-                    );
+                    showWNMessage(context, isError: true, message: 'Please enter your name and select a role!');
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: EdgeInsets.symmetric(vertical: 15),
+                  backgroundColor: WNColors.blue,
+                  elevation: 0,
+                  padding: EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                 ),
                 child: Text(
                   'Next',
-                  style: TextStyle(color: Colors.white, fontSize: 16),
+                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ),
             ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../authendication/authentication.dart';
 import 'Login.dart';
+import 'branding.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -17,6 +18,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
   bool isLoading = false;
   bool _isPasswordVisible = false;
+  bool _signupSuccess = false;
 
   @override
   void dispose() {
@@ -36,15 +38,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
         name: nameController.text,
       );
 
+      setState(() => isLoading = false);
+
       if (res == "success") {
+        setState(() => _signupSuccess = true);
+        await Future.delayed(const Duration(seconds: 2));
+        if (!mounted) return;
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const LoginScreen()),
         );
       } else {
         _showErrorDialog(res);
       }
-
-      setState(() => isLoading = false);
     }
   }
 
@@ -92,12 +97,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
           return null;
         },
         decoration: InputDecoration(
-          prefixIcon: Icon(icon, color: Colors.blueGrey),
+          prefixIcon: Icon(icon, color: WNColors.blue),
           suffixIcon: isPass
               ? IconButton(
             icon: Icon(
               _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-              color: Colors.blueGrey,
+              color: WNColors.blue,
             ),
             onPressed: () {
               setState(() {
@@ -108,16 +113,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
               : null,
           hintText: hintText,
           hintStyle: const TextStyle(color: Colors.grey, fontSize: 16),
+          border: OutlineInputBorder(
+            borderSide: BorderSide.none,
+            borderRadius: BorderRadius.circular(14),
+          ),
           enabledBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.blueGrey),
-            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide.none,
+            borderRadius: BorderRadius.circular(14),
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.blue, width: 2),
-            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: WNColors.blue, width: 2),
+            borderRadius: BorderRadius.circular(14),
           ),
           filled: true,
-          fillColor: const Color(0xFFF5F5F5),
+          fillColor: Colors.white,
         ),
       ),
     );
@@ -129,24 +138,36 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Widget _buildButton({
-    required VoidCallback onTap,
+    required VoidCallback? onTap,
     required String text,
+    bool loading = false,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 15),
       child: ElevatedButton(
         onPressed: onTap,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue,
+          backgroundColor: WNColors.blue,
+          disabledBackgroundColor: WNColors.blue.withOpacity(0.7),
+          elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(14),
           ),
           padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
         ),
-        child: Text(
-          text,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold,color: Colors.white),
-        ),
+        child: loading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : Text(
+                text,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
       ),
     );
   }
@@ -156,28 +177,73 @@ class _SignUpScreenState extends State<SignUpScreen> {
     double height = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: SafeArea(
-          child: Padding(
+      backgroundColor: WNColors.bg,
+      body: SafeArea(
+        child: _signupSuccess ? _buildSuccessView() : _buildForm(),
+      ),
+    );
+  }
+
+  Widget _buildSuccessView() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
+                color: WNColors.blue.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check_circle, color: WNColors.blue, size: 56),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              "Account Created!",
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: WNColors.navy),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "Your account has been created successfully. Taking you to login…",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 15, color: Colors.black54),
+            ),
+            const SizedBox(height: 24),
+            const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2.5, color: WNColors.blue),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildForm() {
+    return SingleChildScrollView(
+      child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Form(
               key: _formKey,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  SizedBox(
-                    width: double.infinity,
-                    height: height / 4,
-                    child: Image.asset("assets/images/signup1.jpg"),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    "Create Your Account Details",
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blueGrey,
+                  const SizedBox(height: 20),
+                  const Center(child: WNLogo(size: 120)),
+                  const SizedBox(height: 20),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Create Your Account",
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: WNColors.navy,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -200,8 +266,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(height: 10),
                   Center(
                     child: _buildButton(
-                      onTap: signUpUser,
+                      onTap: isLoading ? null : signUpUser,
                       text: "Sign Up",
+                      loading: isLoading,
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -225,7 +292,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Colors.blue,
+                              color: WNColors.blue,
                             ),
                           ),
                         ),
@@ -235,8 +302,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ],
               ),
             ),
-          ),
-        ),
       ),
     );
   }

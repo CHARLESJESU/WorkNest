@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../login/branding.dart';
 
 class StepProgress extends StatelessWidget {
   final int currentStep;
@@ -13,19 +14,19 @@ class StepProgress extends StatelessWidget {
       children: [
         Text(
           'Step $currentStep of $totalSteps',
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            fontWeight: FontWeight.w600,
+            color: WNColors.navy,
           ),
         ),
-        SizedBox(height: 5),
+        const SizedBox(height: 8),
         ClipRRect(
           borderRadius: BorderRadius.circular(10),
           child: LinearProgressIndicator(
             value: currentStep / totalSteps,
-            backgroundColor: Colors.grey[300],
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+            backgroundColor: WNColors.blue.withOpacity(0.15),
+            valueColor: const AlwaysStoppedAnimation<Color>(WNColors.blue),
             minHeight: 8,
           ),
         ),

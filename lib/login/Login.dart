@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
-
 import '../Pages/jobproviderpage.dart';
 import '../Pages/workerpage.dart';
 import '../authendication/authentication.dart';
@@ -11,6 +10,7 @@ import '../screens/name_job.dart';
 import '../screens/user_data.dart';
 import 'signup.dart';
 import 'forgot_password.dart'; // Import the new ForgotPasswordScreen
+import 'branding.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -22,16 +22,19 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final FocusNode passwordFocusNode = FocusNode();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final _formKey = GlobalKey<FormState>();
   bool isLoading = false;
+  bool _isPasswordVisible = false;
   String errorMessage = ''; // Store error message here
 
   @override
   void dispose() {
     emailController.dispose();
     passwordController.dispose();
+    passwordFocusNode.dispose();
     super.dispose();
   }
 
@@ -47,21 +50,19 @@ class _LoginScreenState extends State<LoginScreen> {
         password: passwordController.text,
       );
       String userType;
-    if (res == "success" && userexist=="not_existuser") {
-      // if (res == "success") {
+      if (res == "success" && userexist == "not_existuser") {
+        // if (res == "success") {
         globalEmail = emailController.text;
         setState(() {
           isLoading = false;
           errorMessage = '';
         });
         Navigator.of(context).pushReplacement(
-
           MaterialPageRoute(
             builder: (context) => Page1NameRole(userData: UserData()),
           ),
         );
-      }
-      else if(res == "success"){
+      } else if (res == "success") {
         setState(() {
           isLoading = false;
           errorMessage = '';
@@ -71,18 +72,20 @@ class _LoginScreenState extends State<LoginScreen> {
         } else {
           userType = "workers";
         }
-        final snapshot = await _firestore
-            .collection('users')
-            .doc(userType)
-            .collection(userType) // Assuming nested subcollection with same name
-            .doc(userexist)
-            .get();
+        final snapshot =
+            await _firestore
+                .collection('users')
+                .doc(userType)
+                .collection(
+                  userType,
+                ) // Assuming nested subcollection with same name
+                .doc(userexist)
+                .get();
 
-
-         final data = snapshot.data() as Map<String, dynamic>;
-          //
-          // Now you can use `data['fieldName']` safely
- // Ensure correct type
+        final data = snapshot.data() as Map<String, dynamic>;
+        //
+        // Now you can use `data['fieldName']` safely
+        // Ensure correct type
         final userData = UserData.fromJson(data);
         // Navigator.of(context).pushReplacement(
         //
@@ -91,21 +94,22 @@ class _LoginScreenState extends State<LoginScreen> {
         //   ),
         // );
         Widget nextPage =
-        userType == 'workers'
-            ? Workerpage(userData: userData)
-            : Jobproviderpage(userData: userData);
+            userType == 'workers'
+                ? Workerpage(userData: userData)
+                : Jobproviderpage(userData: userData);
 
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => nextPage),
         );
-      }
-      else {
+      } else {
         setState(() {
           isLoading = false;
           errorMessage =
               'User ID or Password is incorrect'; // Update error message
         });
+        passwordController.clear();
+        FocusScope.of(context).requestFocus(passwordFocusNode);
       }
     }
   }
@@ -115,7 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
     double height = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: WNColors.bg,
       body: SingleChildScrollView(
         child: SafeArea(
           child: Padding(
@@ -128,26 +132,23 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  SizedBox(
-                    width: double.infinity,
-                    height: height / 4,
-                    child: Image.asset("assets/images/login2.png"),
-                  ),
-                  const SizedBox(height: 20),
+                  const WNLogo(size: 140),
+
+                  const SizedBox(height: 28),
                   const Text(
                     "Welcome Back!",
                     style: TextStyle(
-                      fontSize: 32,
+                      fontSize: 26,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: WNColors.navy,
                     ),
                   ),
                   const SizedBox(height: 8),
                   const Text(
                     "Log in to your account to continue",
-                    style: TextStyle(fontSize: 16, color: Colors.black54),
+                    style: TextStyle(fontSize: 15, color: Colors.black54),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 32),
                   _buildTextField(
                     emailController,
                     'Email',
@@ -159,6 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     'Password',
                     Icons.lock_outline,
                     isPass: true,
+                    focusNode: passwordFocusNode,
                   ),
 
                   // Display the error message if present
@@ -186,17 +188,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Text(
                         "Forgot Password?",
                         style: TextStyle(
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                           fontSize: 14,
-                          color: Colors.blue,
+                          color: WNColors.blue,
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 40),
-                  isLoading
-                      ? const CircularProgressIndicator()
-                      : _buildElevatedButton("Log In", loginUser),
+                  _buildElevatedButton("Log In", isLoading ? null : loginUser, isLoading),
                   const SizedBox(height: 30),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -217,9 +217,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: const Text(
                           " Sign Up",
                           style: TextStyle(
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w700,
                             fontSize: 14,
-                            color: Colors.blue,
+                            color: WNColors.blue,
                           ),
                         ),
                       ),
@@ -239,10 +239,12 @@ class _LoginScreenState extends State<LoginScreen> {
     String hintText,
     IconData icon, {
     bool isPass = false,
+    FocusNode? focusNode,
   }) {
     return TextFormField(
       controller: controller,
-      obscureText: isPass,
+      focusNode: focusNode,
+      obscureText: isPass ? !_isPasswordVisible : false,
       style: const TextStyle(fontSize: 16),
       validator: (value) {
         if (value == null || value.isEmpty) {
@@ -251,16 +253,29 @@ class _LoginScreenState extends State<LoginScreen> {
         return null;
       },
       decoration: InputDecoration(
-        prefixIcon: Icon(icon, color: Colors.blueAccent),
+        prefixIcon: Icon(icon, color: WNColors.blue),
+        suffixIcon: isPass
+            ? IconButton(
+                icon: Icon(
+                  _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  color: WNColors.blue,
+                ),
+                onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+              )
+            : null,
         hintText: hintText,
         hintStyle: const TextStyle(color: Colors.black45, fontSize: 16),
+        border: OutlineInputBorder(
+          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(14),
+        ),
         enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.blueAccent),
-          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(14),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.blue, width: 2),
-          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: WNColors.blue, width: 2),
+          borderRadius: BorderRadius.circular(14),
         ),
         filled: true,
         fillColor: Colors.white,
@@ -272,26 +287,37 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildElevatedButton(String text, VoidCallback onTap) {
+  Widget _buildElevatedButton(String text, VoidCallback? onTap, bool loading) {
     return SizedBox(
       width: double.infinity,
-      height: 50,
+      height: 52,
       child: ElevatedButton(
         onPressed: onTap,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue,
+          backgroundColor: WNColors.blue,
+          disabledBackgroundColor: WNColors.blue.withOpacity(0.7),
+          elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
           ),
         ),
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
+        child: loading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : Text(
+                text,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
       ),
     );
   }

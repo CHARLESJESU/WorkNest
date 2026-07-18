@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:nivetha123/screens/summary.dart';
 import 'package:nivetha123/screens/user_data.dart';
 
+import '../login/branding.dart';
 import '../widgets/step_progress.dart';
 
 class Page4ProfileDetails extends StatefulWidget {
@@ -33,9 +34,7 @@ class _Page4ProfileDetailsState extends State<Page4ProfileDetails> {
 
   void _validateAndProceed() {
     if (_image == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please upload a profile picture!')),
-      );
+      showWNMessage(context, isError: true, message: 'Please upload a profile picture!');
       return;
     }
 
@@ -59,18 +58,19 @@ class _Page4ProfileDetailsState extends State<Page4ProfileDetails> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: WNColors.bg,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text(
+        title: const Text(
           'Profile Info',
           style: TextStyle(
-            fontSize: 25,
+            fontSize: 22,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: WNColors.navy,
+        elevation: 0,
       ),
       body: Column(
         children: [
@@ -87,23 +87,20 @@ class _Page4ProfileDetailsState extends State<Page4ProfileDetails> {
                   // 📸 Profile Picture Upload
                   Text(
                     'Upload Profile Picture',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: WNColors.navy),
                   ),
                   SizedBox(height: 15),
                   GestureDetector(
                     onTap: _pickImage,
                     child: Container(
-                      padding: EdgeInsets.all(4), // Border thickness
+                      padding: EdgeInsets.all(4),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.black,
-                          width: 1,
-                        ), // Black border
+                        border: Border.all(color: WNColors.blue, width: 2),
                       ),
                       child: CircleAvatar(
                         radius: 65,
-                        backgroundColor: Colors.grey[200],
+                        backgroundColor: Colors.white,
                         backgroundImage:
                             _image != null ? FileImage(_image!) : null,
                         child:
@@ -111,7 +108,7 @@ class _Page4ProfileDetailsState extends State<Page4ProfileDetails> {
                                 ? Icon(
                                   Icons.camera_alt,
                                   size: 35,
-                                  color: Colors.blue,
+                                  color: WNColors.blue,
                                 )
                                 : null,
                       ),
@@ -128,6 +125,7 @@ class _Page4ProfileDetailsState extends State<Page4ProfileDetails> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        color: WNColors.navy,
                       ),
                     ),
                   ),
@@ -136,18 +134,17 @@ class _Page4ProfileDetailsState extends State<Page4ProfileDetails> {
                   TextField(
                     controller: experienceController,
                     decoration: InputDecoration(
+                      hintText: 'e.g. 3',
+                      prefixIcon: const Icon(Icons.work_outline, color: WNColors.blue),
                       filled: true,
-                      fillColor: Colors.grey[200],
+                      fillColor: Colors.white,
                       border: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Colors.black,
-                          width: 2,
-                        ), // Black border
-                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide.none,
+                        borderRadius: BorderRadius.circular(14),
                       ),
                       contentPadding: EdgeInsets.symmetric(
-                        vertical: 15,
-                        horizontal: 15,
+                        vertical: 14,
+                        horizontal: 16,
                       ),
                     ),
                     keyboardType: TextInputType.number,
@@ -184,8 +181,10 @@ class _Page4ProfileDetailsState extends State<Page4ProfileDetails> {
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      padding: EdgeInsets.symmetric(vertical: 15),
+                      backgroundColor: WNColors.blue,
+                      elevation: 0,
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
                     child: Text('Back', style: TextStyle(color: Colors.white)),
                   ),
@@ -195,8 +194,10 @@ class _Page4ProfileDetailsState extends State<Page4ProfileDetails> {
                   child: ElevatedButton(
                     onPressed: _validateAndProceed,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      padding: EdgeInsets.symmetric(vertical: 15),
+                      backgroundColor: WNColors.blue,
+                      elevation: 0,
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
                     child: Text('Next', style: TextStyle(color: Colors.white)),
                   ),

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:nivetha123/screens/user_data.dart';
 import 'package:nivetha123/screens/checkbox_animation_page.dart';
+import '../login/branding.dart';
 import '../main.dart';
 import '../widgets/step_progress.dart';
 
@@ -140,11 +141,12 @@ class _Page5SummaryState extends State<Page5Summary> {
       );
     } catch (error) {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to save data: $error'),
-          action: SnackBarAction(label: 'Retry', onPressed: _saveToFirebase),
-        ),
+      showWNMessage(
+        context,
+        isError: true,
+        message: 'Failed to save data: $error',
+        actionLabel: 'Retry',
+        onAction: _saveToFirebase,
       );
     }
   }
@@ -152,12 +154,14 @@ class _Page5SummaryState extends State<Page5Summary> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: WNColors.bg,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.blue,
+        backgroundColor: WNColors.navy,
+        elevation: 0,
         title: const Text(
           'Profile Overview',
-          style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
       body:
@@ -170,11 +174,12 @@ class _Page5SummaryState extends State<Page5Summary> {
                   children: [
                     StepProgress(currentStep: 5, totalSteps: 5),
                     const SizedBox(height: 20),
-                    const Text(
+                    Text(
                       'Review Your Details',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        color: WNColors.navy,
                       ),
                     ),
                     const Divider(thickness: 1.0, height: 30),
@@ -184,7 +189,7 @@ class _Page5SummaryState extends State<Page5Summary> {
                           if (widget.userData.role == 'Worker')
                             CircleAvatar(
                               radius: 65,
-                              backgroundColor: Colors.grey[200],
+                              backgroundColor: Colors.white,
                               backgroundImage:
                                   widget.userData.profileImage != null
                                       ? FileImage(
@@ -196,7 +201,7 @@ class _Page5SummaryState extends State<Page5Summary> {
                                       ? const Icon(
                                         Icons.person,
                                         size: 65,
-                                        color: Colors.blue,
+                                        color: WNColors.blue,
                                       )
                                       : null,
                             ),
@@ -215,9 +220,9 @@ class _Page5SummaryState extends State<Page5Summary> {
                               vertical: 8,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
+                              color: WNColors.blue.withOpacity(0.08),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.blue, width: 1),
+                              border: Border.all(color: WNColors.blue, width: 1),
                             ),
                             child:
                                 isUserIdLoading
@@ -233,7 +238,7 @@ class _Page5SummaryState extends State<Page5Summary> {
                                       style: const TextStyle(
                                         fontSize: 25,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.blue,
+                                        color: WNColors.blue,
                                       ),
                                       textAlign: TextAlign.center,
                                     ),
@@ -242,11 +247,12 @@ class _Page5SummaryState extends State<Page5Summary> {
                       ),
                     ),
                     const SizedBox(height: 25),
-                    const Text(
+                    Text(
                       'Personal Information',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        color: WNColors.navy,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -260,11 +266,12 @@ class _Page5SummaryState extends State<Page5Summary> {
                           "Not Set",
                     ),
                     const SizedBox(height: 20),
-                    const Text(
+                    Text(
                       'Contact Details',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        color: WNColors.navy,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -277,11 +284,12 @@ class _Page5SummaryState extends State<Page5Summary> {
                     _buildInfoRow('Address:', widget.userData.address),
                     if (widget.userData.role == 'Worker') ...[
                       const SizedBox(height: 20),
-                      const Text(
+                      Text(
                         'Experience',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
+                          color: WNColors.navy,
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -298,7 +306,7 @@ class _Page5SummaryState extends State<Page5Summary> {
                       controlAffinity: ListTileControlAffinity.leading,
                       title: const Text('I accept the Terms & Conditions'),
                       contentPadding: EdgeInsets.zero,
-                      activeColor: Colors.blue,
+                      activeColor: WNColors.blue,
                     ),
                     const SizedBox(height: 10),
                     Row(
@@ -307,8 +315,11 @@ class _Page5SummaryState extends State<Page5Summary> {
                           child: ElevatedButton(
                             onPressed: () => Navigator.pop(context),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
+                              backgroundColor: WNColors.blue,
                               foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                             ),
                             child: const Text('Back'),
                           ),
@@ -325,9 +336,12 @@ class _Page5SummaryState extends State<Page5Summary> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor:
                                   (termsAccepted && !isUserIdLoading)
-                                      ? Colors.blue
+                                      ? WNColors.blue
                                       : Colors.grey,
                               foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                             ),
                             child: const Text('Submit'),
                           ),

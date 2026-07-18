@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../screens/user_data.dart';
+import '../login/branding.dart';
 
 class JobStatusPage extends StatefulWidget {
   final UserData userData;
@@ -94,46 +95,95 @@ class _JobStatusPageState extends State<JobStatusPage> {
     }
   }
 
+  IconData _filterIcon(String status) {
+    switch (status.toLowerCase()) {
+      case 'accepted':
+        return Icons.check_circle;
+      case 'rejected':
+        return Icons.cancel;
+      case 'applied':
+        return Icons.hourglass_top;
+      default:
+        return Icons.filter_list;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Exiting Job Status Page')));
-        return true;
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          actions: [
-            DropdownButton<String>(
-              value: selectedStatus,
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    selectedStatus = value;
-                  });
-                }
-              },
-              items:
-                  ['All', 'Accepted', 'Rejected', 'Applied']
+    return Container(
+      color: WNColors.bg,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.black12),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: selectedStatus,
+                  isExpanded: true,
+                  icon: const Icon(Icons.expand_more, color: WNColors.blue),
+                  borderRadius: BorderRadius.circular(14),
+                  selectedItemBuilder: (context) => ['All', 'Accepted', 'Rejected', 'Applied']
                       .map(
-                        (status) => DropdownMenuItem(
-                          value: status,
-                          child: Text(status),
+                        (status) => Row(
+                          children: [
+                            Icon(_filterIcon(status), color: WNColors.blue, size: 20),
+                            const SizedBox(width: 10),
+                            Text(status, style: const TextStyle(fontWeight: FontWeight.w600, color: WNColors.navy, fontSize: 15)),
+                          ],
                         ),
                       )
                       .toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        selectedStatus = value;
+                      });
+                    }
+                  },
+                  items:
+                      ['All', 'Accepted', 'Rejected', 'Applied']
+                          .map(
+                            (status) => DropdownMenuItem(
+                              value: status,
+                              child: Text(status),
+                            ),
+                          )
+                          .toList(),
+                ),
+              ),
             ),
-          ],
-        ),
-        body:
-            isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : jobList.isEmpty
-                ? const Center(child: Text('No job applications found.'))
-                : ListView.builder(
-                  padding: const EdgeInsets.all(30),
+          ),
+          Expanded(
+            child: RefreshIndicator(
+              color: WNColors.blue,
+              onRefresh: fetchAppliedJobs,
+              child:
+                isLoading
+                    ? const Center(child: CircularProgressIndicator(color: WNColors.blue))
+                    : jobList.isEmpty
+                    ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: const [
+                          SizedBox(height: 120),
+                          Icon(Icons.assignment_outlined, size: 64, color: Colors.black26),
+                          SizedBox(height: 12),
+                          Center(
+                            child: Text(
+                              'No job applications found.',
+                              style: TextStyle(color: Colors.black54, fontSize: 15),
+                            ),
+                          ),
+                        ],
+                      )
+                    : ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: jobList.length,
                   itemBuilder: (context, index) {
                     final job = jobList[index];
@@ -149,13 +199,14 @@ class _JobStatusPageState extends State<JobStatusPage> {
                     final statusIcon = getStatusIcon(job['status']);
 
                     return Card(
+                      color: Colors.white,
                       margin: const EdgeInsets.only(bottom: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      elevation: 4,
+                      elevation: 2,
                       child: Padding(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -164,7 +215,7 @@ class _JobStatusPageState extends State<JobStatusPage> {
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
-                                color: Colors.black87,
+                                color: WNColors.navy,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -205,6 +256,9 @@ class _JobStatusPageState extends State<JobStatusPage> {
                     );
                   },
                 ),
+            ),
+          ),
+        ],
       ),
     );
   }

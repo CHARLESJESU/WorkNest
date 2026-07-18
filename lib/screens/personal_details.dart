@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nivetha123/screens/user_data.dart';
+import '../login/branding.dart';
 import '../widgets/step_progress.dart';
 import 'contact_details.dart';
 
@@ -34,9 +35,7 @@ class _Page2PersonalDetailsState extends State<Page2PersonalDetails> {
       }
 
       if (age < 18) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Workers must be 18+ to proceed!')),
-        );
+        showWNMessage(context, isError: true, message: 'Workers must be 18+ to proceed!');
         return;
       }
     }
@@ -55,18 +54,18 @@ class _Page2PersonalDetailsState extends State<Page2PersonalDetails> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: WNColors.bg,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text(
+        title: const Text(
           'Personal Info',
           style: TextStyle(
-            fontSize: 25,
+            fontSize: 22,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: WNColors.navy,
         elevation: 0,
       ),
       body: Column(
@@ -87,26 +86,32 @@ class _Page2PersonalDetailsState extends State<Page2PersonalDetails> {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: WNColors.navy,
                     ),
                   ),
                   SizedBox(height: 10),
-                  Column(
-                    children:
-                        genders.map((String gender) {
-                          return RadioListTile<String>(
-                            title: Text(gender, style: TextStyle(fontSize: 16)),
-                            value: gender,
-                            groupValue: widget.userData.gender,
-                            onChanged: (String? value) {
-                              setState(() {
-                                widget.userData.gender = value!;
-                                errorMessage = null;
-                              });
-                            },
-                            activeColor: Colors.blue,
-                          );
-                        }).toList(),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Column(
+                      children:
+                          genders.map((String gender) {
+                            return RadioListTile<String>(
+                              title: Text(gender, style: TextStyle(fontSize: 16)),
+                              value: gender,
+                              groupValue: widget.userData.gender,
+                              onChanged: (String? value) {
+                                setState(() {
+                                  widget.userData.gender = value!;
+                                  errorMessage = null;
+                                });
+                              },
+                              activeColor: WNColors.blue,
+                            );
+                          }).toList(),
+                    ),
                   ),
 
                   SizedBox(height: 30),
@@ -117,11 +122,12 @@ class _Page2PersonalDetailsState extends State<Page2PersonalDetails> {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: WNColors.navy,
                     ),
                   ),
                   SizedBox(height: 15),
                   InkWell(
+                    borderRadius: BorderRadius.circular(14),
                     onTap: () async {
                       DateTime? pickedDate = await showDatePicker(
                         context: context,
@@ -139,12 +145,12 @@ class _Page2PersonalDetailsState extends State<Page2PersonalDetails> {
                     },
                     child: Container(
                       padding: EdgeInsets.symmetric(
-                        horizontal: 15,
+                        horizontal: 16,
                         vertical: 15,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(10),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -158,7 +164,7 @@ class _Page2PersonalDetailsState extends State<Page2PersonalDetails> {
                               color: Colors.black87,
                             ),
                           ),
-                          Icon(Icons.calendar_today, color: Colors.blue),
+                          Icon(Icons.calendar_today, color: WNColors.blue),
                         ],
                       ),
                     ),
@@ -190,8 +196,10 @@ class _Page2PersonalDetailsState extends State<Page2PersonalDetails> {
                 ElevatedButton.icon(
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                    backgroundColor: WNColors.blue,
+                    elevation: 0,
+                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
                   icon: Icon(Icons.arrow_back, color: Colors.white),
                   label: Text('Back', style: TextStyle(color: Colors.white)),
@@ -199,8 +207,10 @@ class _Page2PersonalDetailsState extends State<Page2PersonalDetails> {
                 ElevatedButton.icon(
                   onPressed: _validateAndProceed,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                    backgroundColor: WNColors.blue,
+                    elevation: 0,
+                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
                   icon: Icon(Icons.arrow_forward, color: Colors.white),
                   label: Text('Next', style: TextStyle(color: Colors.white)),

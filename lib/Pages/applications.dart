@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_database/firebase_database.dart';
+import '../login/branding.dart';
 
 class Application {
   final String userId;
@@ -71,7 +71,7 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
   Map<String, List<Application>> groupedApplications = {};
   List<bool> showOrderDetails = [];
   bool isLoading = true;
-  StreamSubscription<DatabaseEvent>? _subscription;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _subscription;
 
   @override
   void initState() {
@@ -93,8 +93,6 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
         if (!mounted) return;
 
         Map<String, List<Application>> tempGroupedApps = {};
-         print("pdaljkdslflks");
-         print(querySnapshot.docs[0]);
         for (var postDoc in querySnapshot.docs) {
           final orderId = postDoc.id;
 
@@ -121,11 +119,9 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
       onError: (error) {
         if (!mounted) return;
         setState(() => isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load applications: $error')),
-        );
+        showWNMessage(context, isError: true, message: 'Failed to load applications: $error');
       },
-    ) as StreamSubscription<DatabaseEvent>? ;
+    );
   }
 
 
@@ -162,6 +158,20 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
 
       await batch.commit();
 
+      if (newStatus == 'accepted') {
+        await firestore
+            .collection('messages')
+            .doc(workerUserId)
+            .collection('inbox')
+            .add({
+          'from': widget.jobProviderUserId,
+          'type': 'job_confirmation',
+          'postId': orderId,
+          'message': 'You have been accepted for this job! Let us know if you\'re interested.',
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+      }
+
       // Optional UI update for rejected status
       if (newStatus == 'rejected') {
         setState(() {
@@ -171,23 +181,175 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
         });
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Application ${newStatus.toLowerCase()} successfully'),
-        ),
-      );
+      if (mounted) {
+        _showResultDialog(
+          success: true,
+          title: newStatus == 'accepted' ? "Accepted" : "Rejected",
+          message: 'Application ${newStatus.toLowerCase()} successfully.',
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to update status: $e')));
+      if (mounted) {
+        _showResultDialog(
+          success: false,
+          title: "Failed",
+          message: 'Failed to update status: $e',
+        );
+      }
     }
+  }
+
+  Future<void> _confirmAndUpdate(String orderId, String workerUserId, String newStatus) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: (newStatus == 'accepted' ? Colors.green : Colors.red).withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  newStatus == 'accepted' ? Icons.check_circle_outline : Icons.cancel_outlined,
+                  color: newStatus == 'accepted' ? Colors.green : Colors.red,
+                  size: 44,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                newStatus == 'accepted' ? "Accept Application?" : "Reject Application?",
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: WNColors.navy),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                newStatus == 'accepted'
+                    ? "This worker will be notified that they're accepted for this job."
+                    : "This worker will be notified that their application was rejected.",
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 14, color: Colors.black54),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 48,
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: WNColors.blue),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        child: const Text("Cancel", style: TextStyle(color: WNColors.blue, fontWeight: FontWeight.w600)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SizedBox(
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: newStatus == 'accepted' ? Colors.green : Colors.red,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        child: Text(
+                          "Confirm",
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (confirmed == true) {
+      await updateApplicationStatus(orderId, workerUserId, newStatus);
+    }
+  }
+
+  void _showResultDialog({required bool success, required String title, required String message}) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: (success ? WNColors.blue : Colors.red).withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  success ? Icons.check_circle : Icons.error_outline,
+                  color: success ? WNColors.blue : Colors.red,
+                  size: 44,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                title,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: WNColors.navy),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 14, color: Colors.black54),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: WNColors.blue,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  child: const Text("OK", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
 
   Color getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'applied':
-        return Colors.blue;
+        return WNColors.blue;
       case 'accepted':
         return Colors.green;
       case 'rejected':
@@ -203,16 +365,19 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
     int orderIndex,
   ) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      elevation: 4,
+      color: Colors.white,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ExpansionTile(
+        iconColor: WNColors.blue,
+        collapsedIconColor: WNColors.blue,
         title: Text(
           'Order ID: $orderId',
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: Colors.blueAccent,
+            color: WNColors.navy,
           ),
         ),
         subtitle: Text(
@@ -253,8 +418,12 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        color: const Color(0xFFF6F8FC),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: Colors.black12),
+        ),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
@@ -272,13 +441,14 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
+                            color: WNColors.navy,
                           ),
                         ),
                         Text(
                           'User ID: ${worker.userId}',
                           style: const TextStyle(
                             fontSize: 13,
-                            color: Colors.grey,
+                            color: Colors.black45,
                           ),
                         ),
                         Text(
@@ -333,7 +503,7 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
                             child: ElevatedButton(
                               onPressed:
                                   status == 'applied'
-                                      ? () => updateApplicationStatus(
+                                      ? () => _confirmAndUpdate(
                                         orderId,
                                         worker.userId,
                                         'accepted',
@@ -341,8 +511,9 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
                                       : null,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green,
+                                elevation: 0,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
                               child: const Text(
@@ -356,7 +527,7 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
                             child: ElevatedButton(
                               onPressed:
                                   status == 'applied'
-                                      ? () => updateApplicationStatus(
+                                      ? () => _confirmAndUpdate(
                                         orderId,
                                         worker.userId,
                                         'rejected',
@@ -364,8 +535,9 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
                                       : null,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red,
+                                elevation: 0,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
                               child: const Text(
@@ -422,12 +594,14 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
+    return Container(
+      color: WNColors.bg,
+      child: Stack(
         children: [
           isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(child: CircularProgressIndicator(color: WNColors.blue))
               : RefreshIndicator(
+                color: WNColors.blue,
                 onRefresh: fetchApplications,
                 child:
                     groupedApplications.isEmpty
@@ -437,13 +611,18 @@ class _ApplicationsPageState extends State<ApplicationsPage> {
                             SizedBox(height: 150),
                             Center(
                               child: Icon(
-                                Icons.work_off,
-                                size: 50,
-                                color: Colors.grey,
+                                Icons.work_off_outlined,
+                                size: 64,
+                                color: Colors.black26,
                               ),
                             ),
-                            SizedBox(height: 10),
-                            Center(child: Text('No applications yet')),
+                            SizedBox(height: 12),
+                            Center(
+                              child: Text(
+                                'No applications yet',
+                                style: TextStyle(color: Colors.black54, fontSize: 15),
+                              ),
+                            ),
                           ],
                         )
                         : ListView.builder(

@@ -9,11 +9,13 @@ import 'package:nivetha123/Pages/workerpagesubfolder/workerpost.dart'; // Assumi
 
 
 import '../map_pages.dart'; // Your existing MapPage
+import '../../login/branding.dart';
 
 class WorkerContentView extends StatelessWidget {
   final List<Post> posts;
   final bool isLoading;
   final Map<String, bool> appliedJobs;
+  final Map<String, bool> applyingJobs;
   final Map<String, JobProvider> jobProviderDetails;
   final String? selectedCity;
   final List<String> availableCities;
@@ -27,6 +29,7 @@ class WorkerContentView extends StatelessWidget {
     required this.posts,
     required this.isLoading,
     required this.appliedJobs,
+    required this.applyingJobs,
     required this.jobProviderDetails,
     required this.selectedCity,
     required this.availableCities,
@@ -34,7 +37,6 @@ class WorkerContentView extends StatelessWidget {
     required this.onApplyForJob,
     required this.onRefreshPosts, // Initialize the callback
   }) : super(key: key);
-
 
   @override
   Widget build(BuildContext context) {
@@ -48,48 +50,99 @@ class WorkerContentView extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: DropdownButton<String?>(
-            value: selectedCity,
-            hint: const Text("Filter by City"),
-            isExpanded: true,
-            items: [
-              const DropdownMenuItem<String?>(
-                value: null,
-                child: Text("All Cities"),
+          padding: const EdgeInsets.all(16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.black12),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String?>(
+                value: selectedCity,
+                hint: Row(
+                  children: const [
+                    Icon(Icons.location_city, color: WNColors.blue, size: 20),
+                    SizedBox(width: 10),
+                    Text("Filter by City", style: TextStyle(color: Colors.black54, fontSize: 15)),
+                  ],
+                ),
+                icon: const Icon(Icons.expand_more, color: WNColors.blue),
+                isExpanded: true,
+                borderRadius: BorderRadius.circular(14),
+                selectedItemBuilder: (context) => [
+                  Row(
+                    children: const [
+                      Icon(Icons.location_city, color: WNColors.blue, size: 20),
+                      SizedBox(width: 10),
+                      Text("All Cities", style: TextStyle(fontWeight: FontWeight.w600, color: WNColors.navy, fontSize: 15)),
+                    ],
+                  ),
+                  ...availableCities.map(
+                    (city) => Row(
+                      children: [
+                        const Icon(Icons.location_city, color: WNColors.blue, size: 20),
+                        const SizedBox(width: 10),
+                        Text(city, style: const TextStyle(fontWeight: FontWeight.w600, color: WNColors.navy, fontSize: 15)),
+                      ],
+                    ),
+                  ),
+                ],
+                items: [
+                  const DropdownMenuItem<String?>(
+                    value: null,
+                    child: Text("All Cities"),
+                  ),
+                  ...availableCities.map(
+                        (city) => DropdownMenuItem<String?>(value: city, child: Text(city)),
+                  ),
+                ],
+                onChanged: onCityChanged, // Use the callback
               ),
-              ...availableCities.map(
-                    (city) => DropdownMenuItem<String?>(value: city, child: Text(city)),
-              ),
-            ],
-            onChanged: onCityChanged, // Use the callback
+            ),
           ),
         ),
         Expanded(
           child: RefreshIndicator( // Keep RefreshIndicator here for refreshing content view
+            color: WNColors.blue,
             onRefresh: onRefreshPosts,
             child: isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator(color: WNColors.blue))
                 : filteredPosts.isEmpty
-                ? const Center(child: Text("No jobs available for selected city."))
+                ? ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: const [
+                      SizedBox(height: 120),
+                      Icon(Icons.work_off_outlined, size: 64, color: Colors.black26),
+                      SizedBox(height: 12),
+                      Center(
+                        child: Text(
+                          "No jobs available for selected city.",
+                          style: TextStyle(color: Colors.black54, fontSize: 15),
+                        ),
+                      ),
+                    ],
+                  )
                 : ListView.builder(
               padding: const EdgeInsets.all(12),
               itemCount: filteredPosts.length,
               itemBuilder: (context, index) {
                 final post = filteredPosts[index];
                 final isApplied = appliedJobs[post.postId] ?? false;
+                final isApplying = applyingJobs[post.postId] ?? false;
                 final provider = jobProviderDetails[post.userId];
                 final providerAddress = provider?.address ?? "";
 
                 return Card(
-                  color: const Color(0xFFF2F2F2),
+                  color: Colors.white,
                   margin: const EdgeInsets.only(bottom: 16),
-                  elevation: 4,
+                  elevation: 2,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -97,17 +150,19 @@ class WorkerContentView extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Job Provider Id: ${post.userId}",
+                              provider?.name.isNotEmpty == true
+                                  ? provider!.name
+                                  : "Job Provider Id: ${post.userId}",
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.blueAccent,
+                                color: WNColors.navy,
                               ),
                             ),
                             IconButton(
                               icon: const Icon(
                                 Icons.location_on,
-                                color: Colors.redAccent,
+                                color: WNColors.orange,
                               ),
                               onPressed: () async {
                                 if (providerAddress.isNotEmpty) {
@@ -130,16 +185,10 @@ class WorkerContentView extends StatelessWidget {
                                     }
                                   } catch (e) {
                                     print("Error getting location: $e");
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text("Couldn't find location for the given address"),
-                                      ),
-                                    );
+                                    showWNMessage(context, isError: true, message: "Couldn't find location for the given address");
                                   }
                                 } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text("Address is empty")),
-                                  );
+                                  showWNMessage(context, isError: true, message: "Address is empty");
                                 }
                               },
                             ),
@@ -151,9 +200,20 @@ class WorkerContentView extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blueAccent,
+                            color: WNColors.blue,
                           ),
                         ),
+                        if (provider != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            "Phone: ${provider.phone}",
+                            style: const TextStyle(fontSize: 13, color: Colors.black54),
+                          ),
+                          Text(
+                            "Address: ${provider.address}",
+                            style: const TextStyle(fontSize: 13, color: Colors.black54),
+                          ),
+                        ],
                         const SizedBox(height: 8),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,20 +270,32 @@ class WorkerContentView extends StatelessWidget {
                                   Align(
                                     alignment: Alignment.centerRight,
                                     child: ElevatedButton.icon(
-                                      onPressed: isApplied
+                                      onPressed: (isApplied || isApplying)
                                           ? null
                                           : () => onApplyForJob(
                                         post.userId,
                                         post.postId,
                                       ),
-                                      icon: const Icon(Icons.work, color: Colors.white),
+                                      icon: isApplying
+                                          ? const SizedBox(
+                                              width: 16,
+                                              height: 16,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                              ),
+                                            )
+                                          : const Icon(Icons.work, color: Colors.white),
                                       label: Text(
-                                        isApplied ? "Applied" : "Apply Now",
+                                        isApplied ? "Applied" : (isApplying ? "Applying..." : "Apply Now"),
                                         style: const TextStyle(color: Colors.white),
                                       ),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor:
-                                        isApplied ? Colors.grey : Colors.blue,
+                                        isApplied ? Colors.grey : WNColors.blue.withOpacity(isApplying ? 0.7 : 1),
+                                        disabledBackgroundColor:
+                                        isApplied ? Colors.grey : WNColors.blue.withOpacity(0.7),
+                                        elevation: 0,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(10),
                                         ),

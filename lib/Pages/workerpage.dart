@@ -34,6 +34,8 @@ import 'job_status_page.dart';
 import 'map_pages.dart';
 
 import 'profile_details_page.dart';
+import 'worker_message.dart';
+import '../login/branding.dart';
 
 
 class Workerpage extends StatefulWidget {
@@ -52,6 +54,7 @@ class _WorkerpageState extends State<Workerpage> {
   List<Post> posts = [];
   bool isLoading = true;
   Map<String, bool> appliedJobs = {};
+  Map<String, bool> applyingJobs = {};
   Map<String, JobProvider> jobProviderDetails = {};
   String? selectedCity;
   List<String> availableCities = [];
@@ -170,9 +173,7 @@ class _WorkerpageState extends State<Workerpage> {
     } catch (e) {
       print("Failed to load posts or providers: $e");
       setState(() => isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to load jobs: $e")),
-      );
+      if (mounted) showWNMessage(context, isError: true, message: "Failed to load jobs: $e");
     }
   }
 
@@ -211,8 +212,14 @@ class _WorkerpageState extends State<Workerpage> {
     );
 
     if (image != null) {
+      final base64Image = await compressImageToBase64(image.path);
+      if (base64Image == null) {
+        if (mounted) await showWNMessage(context, isError: true, message: 'Failed to process image.');
+        return;
+      }
+
       setState(() {
-        userData.profileImage = image.path;
+        userData.profileImage = base64Image;
       });
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('userData', jsonEncode(userData.toJson()));
@@ -222,26 +229,23 @@ class _WorkerpageState extends State<Workerpage> {
             .doc('workers')
             .collection('workers')
             .doc(userData.userId)
-            .update({'profileImage': image.path});
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Profile image updated successfully')),
-        );
+            .update({'profileImage': base64Image});
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update profile image: $e')),
-        );
+        if (mounted) await showWNMessage(context, isError: true, message: 'Failed to update profile image: $e');
       }
     }
   }
 
   Future<void> _applyForJob(String jobProviderUserId, String postId) async {
+    if (applyingJobs[postId] == true) return; // already in flight, ignore double-tap
+
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please log in to apply for jobs")),
-      );
+      showWNMessage(context, isError: true, message: "Please log in to apply for jobs");
       return;
     }
+
+    setState(() => applyingJobs[postId] = true);
 
     try {
       final workerUserId = userData.userId;
@@ -275,9 +279,7 @@ class _WorkerpageState extends State<Workerpage> {
       );
 
       if (post.postId.isEmpty || post.userId.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Post not found or invalid")),
-        );
+        showWNMessage(context, isError: true, message: "Post not found or invalid");
         return;
       }
 
@@ -319,14 +321,72 @@ class _WorkerpageState extends State<Workerpage> {
       setState(() => appliedJobs[postId] = true);
       await _saveAppliedJob(postId);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Successfully applied to the job!")),
-      );
+      if (mounted) await _showAppliedSuccessDialog();
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Failed to apply to the job: $e")));
+      if (mounted) showWNMessage(context, isError: true, message: "Failed to apply to the job: $e");
+    } finally {
+      if (mounted) setState(() => applyingJobs[postId] = false);
     }
+  }
+
+  Future<void> _showAppliedSuccessDialog() {
+    return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: WNColors.blue.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.check_circle, color: WNColors.blue, size: 44),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  "Application Sent!",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: WNColors.navy),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  "You've successfully applied to this job. The job provider will review it soon.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: Colors.black54),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: WNColors.blue,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: const Text("Done", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildMainContent() {
@@ -335,6 +395,7 @@ class _WorkerpageState extends State<Workerpage> {
         posts: posts,
         isLoading: isLoading,
         appliedJobs: appliedJobs,
+        applyingJobs: applyingJobs,
         jobProviderDetails: jobProviderDetails,
         selectedCity: selectedCity,
         availableCities: availableCities,
@@ -342,8 +403,23 @@ class _WorkerpageState extends State<Workerpage> {
         onApplyForJob: _applyForJob,
         onRefreshPosts: _loadPosts, // Pass the refresh function down
       );
-    } else {
+    } else if (_selectedIndex == 1) {
       return JobStatusPage(userData: userData);
+    } else {
+      return WorkerMessagesPage(workerId: userData.userId);
+    }
+  }
+
+  String _titleForIndex() {
+    switch (_selectedIndex) {
+      case 0:
+        return 'Welcome, ${userData.name}';
+      case 1:
+        return 'Job Status';
+      case 2:
+        return 'Messages';
+      default:
+        return 'Welcome, ${userData.name}';
     }
   }
 
@@ -357,39 +433,175 @@ class _WorkerpageState extends State<Workerpage> {
       onWillPop: backController.handleWillPop,
       child: Scaffold(
         key: scaffoldKey,
+        backgroundColor: WNColors.bg,
         appBar: AppBar(
           title: Text(
-            _selectedIndex == 0 ? 'Welcome, ${userData.name}' : 'Job Status',
+            _titleForIndex(),
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.white,
-              fontSize: 25,
+              fontSize: 20,
             ),
           ),
-          backgroundColor: Colors.blueAccent,
+          backgroundColor: WNColors.blue,
+          elevation: 0,
           leading: IconButton(
             icon: _buildProfileAvatar(radius: 20),
             onPressed: () => scaffoldKey.currentState?.openDrawer(),
           ),
         ),
         drawer: buildDrawer(),
-        body: RefreshIndicator(
-          onRefresh:_loadPosts,
-          child: _buildMainContent(),
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          selectedItemColor: Colors.blueAccent,
-          onTap: (index) => setState(() => _selectedIndex = index),
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.assignment),
-              label: 'Job Status',
-            ),
+        body: _buildMainContent(),
+        bottomNavigationBar: _buildBottomNav(),
+      ),
+    );
+  }
+
+  Widget _buildBottomNav() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            _buildNavItem(icon: Icons.home_rounded, label: 'Home', index: 0),
+            const SizedBox(width: 8),
+            _buildNavItem(icon: Icons.assignment_rounded, label: 'Job Status', index: 1),
+            const SizedBox(width: 8),
+            _buildNavItem(icon: Icons.message_rounded, label: 'Messages', index: 2),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildNavItem({required IconData icon, required String label, required int index}) {
+    final bool selected = _selectedIndex == index;
+    return Expanded(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => setState(() => _selectedIndex = index),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: selected ? WNColors.blue.withOpacity(0.1) : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: selected ? WNColors.blue : Colors.black45, size: 24),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                  color: selected ? WNColors.blue : Colors.black45,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<bool?> _showLogoutSheet(BuildContext context) {
+    return showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.black12,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: WNColors.blue.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.logout_rounded, color: WNColors.blue, size: 32),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                "Logout",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: WNColors.navy),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                "Are you sure you want to logout?",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: Colors.black54),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 48,
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: WNColors.blue),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: const Text("Cancel", style: TextStyle(color: WNColors.blue, fontWeight: FontWeight.w600)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SizedBox(
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: WNColors.blue,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: const Text("Logout", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -413,25 +625,26 @@ class _WorkerpageState extends State<Workerpage> {
                   child: GestureDetector(
                     onTap: _pickImage,
                     child: Container(
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
+                      decoration: BoxDecoration(
+                        color: WNColors.blue,
                         shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
                       ),
-                      padding: const EdgeInsets.all(3), // Add padding for the icon
+                      padding: const EdgeInsets.all(6),
                       child: const Icon(
-                        Icons.edit,
-                        size: 24,
-                        color: Colors.blueAccent,
+                        Icons.camera_alt,
+                        size: 16,
+                        color: Colors.white,
                       ),
                     ),
                   ),
                 ),
               ],
             ),
-            decoration: const BoxDecoration(color: Colors.blueAccent),
+            decoration: const BoxDecoration(color: WNColors.blue),
           ),
           ListTile(
-            leading: const Icon(Icons.person),
+            leading: const Icon(Icons.person, color: WNColors.blue),
             title: const Text('Profile Details'),
             onTap: () {
               Navigator.push(
@@ -443,25 +656,10 @@ class _WorkerpageState extends State<Workerpage> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.logout),
+            leading: const Icon(Icons.logout, color: WNColors.blue),
             title: const Text('Logout'),
             onTap: () async {
-              final shouldLogout = await Get.dialog(
-                AlertDialog(
-                  title: const Text("Confirm Logout"),
-                  content: const Text("Are you sure you want to logout?"),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Get.back(result: false),
-                      child: const Text("Cancel"),
-                    ),
-                    TextButton(
-                      onPressed: () => Get.back(result: true),
-                      child: const Text("Confirm"),
-                    ),
-                  ],
-                ),
-              );
+              final shouldLogout = await _showLogoutSheet(context);
               if (shouldLogout == true) {
                 SharedPreferences prefs = await SharedPreferences.getInstance();
                 await prefs.setBool('isLoggedIn', false);
@@ -476,19 +674,6 @@ class _WorkerpageState extends State<Workerpage> {
   }
 
   Widget _buildProfileAvatar({required double radius}) {
-    if (userData.profileImage != null && userData.profileImage!.isNotEmpty) {
-      return CircleAvatar(
-        backgroundImage: FileImage(File(userData.profileImage!)),
-        radius: radius,
-      );
-    }
-    return CircleAvatar(
-      backgroundColor: Colors.grey[300],
-      radius: radius,
-      child: Text(
-        userData.name.isNotEmpty ? userData.name[0].toUpperCase() : '?',
-        style: TextStyle(fontSize: radius, color: Colors.blue),
-      ),
-    );
+    return WNAvatar(imageBase64: userData.profileImage, name: userData.name, radius: radius);
   }
 }

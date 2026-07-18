@@ -59,7 +59,7 @@ class UserData {
       name: json['name'] ?? '',
       role: json['role'] ?? '',
       gender: json['gender'] ?? '',
-      dob: json['dob'] != null ? DateTime.parse(json['dob']) : null,
+      dob: json['dob'] != null ? DateTime.tryParse(json['dob']) : null,
       country: json['country'] ?? 'India',
       state: json['state'] ?? '',
       district: json['district'] ?? '',
@@ -68,7 +68,11 @@ class UserData {
       area: json['area'] ?? '',
       phoneNumber: json['phone'] ?? '+91',
       experience: json['experience'] ?? '',
-      profileImage: json['profileImage'] ?? '',
+      profileImage: (json['profileImage'] as String?)?.isNotEmpty == true
+          ? json['profileImage']
+          : (json['profileImageBase64'] ?? '') == 'No Image'
+              ? ''
+              : (json['profileImageBase64'] ?? ''),
     );
   }
 

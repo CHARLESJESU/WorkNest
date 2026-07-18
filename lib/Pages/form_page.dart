@@ -9,6 +9,7 @@ import 'package:path/path.dart' as path;
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:path_provider/path_provider.dart';
+import '../login/branding.dart';
 
 
 class FormPage extends StatefulWidget {
@@ -62,9 +63,7 @@ class _FormPageState extends State<FormPage> {
 
       // Validate compression result
       if (compressedFile == null || !await File(compressedFile.path).exists()) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Image compression failed.")),
-        );
+        if (mounted) showWNMessage(context, isError: true, message: "Image compression failed.");
         return null;
       }
 
@@ -91,16 +90,12 @@ class _FormPageState extends State<FormPage> {
   Future<void> _uploadOrder() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("User not logged in")),
-      );
+      showWNMessage(context, isError: true, message: "User not logged in");
       return;
     }
 
     if (_imageFile == null || _descriptionController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Please select an image and enter a description")),
-      );
+      showWNMessage(context, isError: true, message: "Please select an image and enter a description");
       return;
     }
 
@@ -147,9 +142,7 @@ class _FormPageState extends State<FormPage> {
         if (mounted) Navigator.of(context).pop();
       });
     }catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to post job: $e")),
-      );
+      if (mounted) showWNMessage(context, isError: true, message: "Failed to post job: $e");
     } finally {
       setState(() {
         _isUploading = false;
@@ -167,7 +160,15 @@ class _FormPageState extends State<FormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Post Job")),
+      backgroundColor: WNColors.bg,
+      appBar: AppBar(
+        title: const Text(
+          "Post Job",
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        backgroundColor: WNColors.blue,
+        elevation: 0,
+      ),
       body: Stack(
         children: [
           Padding(
@@ -176,89 +177,106 @@ class _FormPageState extends State<FormPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "Enter Description",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  const Text(
+                    "Description",
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: WNColors.navy),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Container(
                     height: 100,
                     child: TextField(
                       controller: _descriptionController,
                       maxLines: null,
                       expands: true,
+                      style: const TextStyle(fontSize: 15),
                       decoration: InputDecoration(
                         hintText: 'Type your description...',
+                        hintStyle: const TextStyle(color: Colors.black38),
+                        filled: true,
+                        fillColor: Colors.white,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                          borderRadius: BorderRadius.circular(14),
                         ),
-                        contentPadding: EdgeInsets.all(12),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: WNColors.blue, width: 2),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        contentPadding: const EdgeInsets.all(14),
                       ),
                     ),
                   ),
-                  SizedBox(height: 20),
-                  _imageFile != null
-                      ? Container(
-                    height: 200,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.file(
-                        _imageFile!,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  )
-                      : Container(
-                    height: 200,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey),
-                    ),
-                    child: Center(child: Text("No image selected")),
+                  const SizedBox(height: 20),
+                  const Text(
+                    "Photo",
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: WNColors.navy),
                   ),
-                  SizedBox(height: 20),
-                  Center(
-                    child: ElevatedButton.icon(
-                      onPressed: _pickImage,
-                      icon: Icon(Icons.image),
-                      label: Text("Pick Image"),
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: _imageFile != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(14),
+                            child: Image.file(
+                              _imageFile!,
+                              height: 200,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : Container(
+                            height: 200,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: Colors.black12),
+                            ),
+                            child: const Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.add_a_photo_outlined, size: 36, color: WNColors.blue),
+                                  SizedBox(height: 8),
+                                  Text("Tap to select an image", style: TextStyle(color: Colors.black54, fontSize: 14)),
+                                ],
+                              ),
+                            ),
+                          ),
                   ),
-                  SizedBox(height: 16),
-                  Center(
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
                     child: ElevatedButton(
                       onPressed: _isUploading ? null : _uploadOrder,
-                      child:
-                      _isUploading
-                          ? CircularProgressIndicator(color: Colors.white)
-                          : Text("Post"),
                       style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 14,
-                        ),
+                        backgroundColor: WNColors.blue,
+                        disabledBackgroundColor: WNColors.blue.withOpacity(0.7),
+                        elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                       ),
+                      child: _isUploading
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : const Text(
+                              "Post Job",
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                            ),
                     ),
                   ),
-                  SizedBox(height: 100),
+                  const SizedBox(height: 100),
                 ],
               ),
             ),
@@ -285,20 +303,28 @@ class _FormPageState extends State<FormPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check_circle, color: Colors.green, size: 80),
-                      SizedBox(height: 12),
-                      Text(
-                        "Order placed successfully!",
+                      Container(
+                        width: 72,
+                        height: 72,
+                        decoration: BoxDecoration(
+                          color: WNColors.blue.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.check_circle, color: WNColors.blue, size: 44),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        "Job posted successfully!",
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.green[700],
+                          color: WNColors.navy,
                         ),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(
                         "Order ID: $_generatedOrderId",
-                        style: TextStyle(fontSize: 16, color: Colors.black54),
+                        style: const TextStyle(fontSize: 14, color: Colors.black54),
                       ),
                     ],
                   ),

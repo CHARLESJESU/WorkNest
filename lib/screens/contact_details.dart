@@ -4,6 +4,7 @@ import 'package:nivetha123/screens/profile_details.dart';
 import 'package:nivetha123/screens/summary.dart';
 import 'package:nivetha123/screens/user_data.dart';
 
+import '../login/branding.dart';
 import '../widgets/step_progress.dart';
 
 class Page3ContactDetails extends StatefulWidget {
@@ -31,16 +32,12 @@ class _Page3ContactDetailsState extends State<Page3ContactDetails> {
         countryController.text.isEmpty ||
         stateController.text.isEmpty ||
         cityController.text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Please enter all details!')));
+      showWNMessage(context, isError: true, message: 'Please enter all details!');
       return;
     }
 
     if (phone.length != 10 || !RegExp(r'^[0-9]+$').hasMatch(phone)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Enter a valid 10-digit phone number!')),
-      );
+      showWNMessage(context, isError: true, message: 'Enter a valid 10-digit phone number!');
       return;
     }
 
@@ -72,17 +69,19 @@ class _Page3ContactDetailsState extends State<Page3ContactDetails> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: WNColors.bg,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text(
+        title: const Text(
           'Contact Info',
           style: TextStyle(
-            fontSize: 25,
+            fontSize: 22,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: WNColors.navy,
+        elevation: 0,
       ),
       body: Column(
         children: [
@@ -99,15 +98,22 @@ class _Page3ContactDetailsState extends State<Page3ContactDetails> {
                   // 📞 Phone Number Input
                   Text(
                     'Enter your Phone Number',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: WNColors.navy),
                   ),
                   SizedBox(height: 10),
                   TextField(
                     controller: phoneController,
                     decoration: InputDecoration(
-                      labelText: 'Phone Number',
+                      hintText: 'Phone Number',
                       prefixText: '+91 ',
-                      border: OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.phone_outlined, color: WNColors.blue),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide.none,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                     ),
                     keyboardType: TextInputType.phone,
                     maxLength: 10,
@@ -118,14 +124,21 @@ class _Page3ContactDetailsState extends State<Page3ContactDetails> {
                   // 📍 Area Input
                   Text(
                     'Area',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: WNColors.navy),
                   ),
                   SizedBox(height: 10),
                   TextField(
                     controller: areaController,
                     decoration: InputDecoration(
-                      labelText: 'Enter your Area/Village name',
-                      border: OutlineInputBorder(),
+                      hintText: 'Enter your Area/Village name',
+                      prefixIcon: const Icon(Icons.location_on_outlined, color: WNColors.blue),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide.none,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                     ),
                     keyboardType: TextInputType.text,
                   ),
@@ -135,14 +148,21 @@ class _Page3ContactDetailsState extends State<Page3ContactDetails> {
                   // 🏠 Full Address Input
                   Text(
                     'Full Address',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: WNColors.navy),
                   ),
                   SizedBox(height: 10),
                   TextField(
                     controller: addressController,
                     decoration: InputDecoration(
-                      labelText: 'Door no/Flat no/Street name',
-                      border: OutlineInputBorder(),
+                      hintText: 'Door no/Flat no/Street name',
+                      prefixIcon: const Icon(Icons.home_outlined, color: WNColors.blue),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide.none,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                     ),
                     keyboardType: TextInputType.text,
                   ),
@@ -152,19 +172,22 @@ class _Page3ContactDetailsState extends State<Page3ContactDetails> {
                   // 🌍 Country, State, City Picker
                   Text(
                     'Select Country, State & City',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: WNColors.navy),
                   ),
                   SizedBox(height: 10),
                   CountryStateCityPicker(
                     country: countryController,
                     state: stateController,
                     city: cityController,
-                    dialogColor: Colors.grey.shade200,
+                    dialogColor: Colors.white,
                     textFieldDecoration: InputDecoration(
-                      fillColor: Colors.grey[200],
+                      fillColor: Colors.white,
                       filled: true,
-                      suffixIcon: Icon(Icons.arrow_drop_down),
-                      border: OutlineInputBorder(),
+                      suffixIcon: const Icon(Icons.arrow_drop_down, color: WNColors.blue),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide.none,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                   ),
                 ],
@@ -182,8 +205,10 @@ class _Page3ContactDetailsState extends State<Page3ContactDetails> {
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      padding: EdgeInsets.symmetric(vertical: 15),
+                      backgroundColor: WNColors.blue,
+                      elevation: 0,
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
                     child: Text('Back', style: TextStyle(color: Colors.white)),
                   ),
@@ -193,8 +218,10 @@ class _Page3ContactDetailsState extends State<Page3ContactDetails> {
                   child: ElevatedButton(
                     onPressed: _validateAndProceed,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      padding: EdgeInsets.symmetric(vertical: 15),
+                      backgroundColor: WNColors.blue,
+                      elevation: 0,
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
                     child: Text('Next', style: TextStyle(color: Colors.white)),
                   ),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../login/branding.dart';
 
 class BackButtonController extends GetxController {
   DateTime? _lastPressed;
@@ -11,20 +12,9 @@ class BackButtonController extends GetxController {
         now.difference(_lastPressed!) > Duration(seconds: 2)) {
       _lastPressed = now;
 
-      // ✅ Normal ScaffoldMessenger snackbar
       final context = Get.context;
       if (context != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Press back again to exit'),
-            duration: Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.all(12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        );
+        showWNToast(context, 'Press back again to exit');
       }
 
       return false;
