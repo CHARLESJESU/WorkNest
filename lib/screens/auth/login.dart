@@ -2,15 +2,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
-import '../Pages/jobproviderpage.dart';
-import '../Pages/workerpage.dart';
-import '../authendication/authentication.dart';
-import '../main.dart';
-import '../screens/name_job.dart';
-import '../screens/user_data.dart';
+import '../jobprovider/jobprovider_home.dart';
+import '../worker/worker_home.dart';
+import '../../services/authentication.dart';
+import '../../main.dart';
+import '../onboarding/name_job.dart';
+import '../../models/user_data.dart';
 import 'signup.dart';
 import 'forgot_password.dart'; // Import the new ForgotPasswordScreen
-import 'branding.dart';
+import '../../theme/branding.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:nivetha123/screens/user_data.dart';
-import '../login/branding.dart';
-import '../widgets/step_progress.dart';
+import 'package:nivetha123/models/user_data.dart';
+import '../../theme/branding.dart';
+import '../../widgets/step_progress.dart';
 import 'contact_details.dart';
 
 class Page2PersonalDetails extends StatefulWidget {

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
-import 'package:nivetha123/screens/summary.dart';
-import 'package:nivetha123/screens/user_data.dart';
+import 'package:nivetha123/screens/onboarding/summary.dart';
+import 'package:nivetha123/models/user_data.dart';
 
-import '../login/branding.dart';
-import '../widgets/step_progress.dart';
+import '../../theme/branding.dart';
+import '../../widgets/step_progress.dart';
 
 class Page4ProfileDetails extends StatefulWidget {
   final UserData userData;

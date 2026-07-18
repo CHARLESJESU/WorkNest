@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../login/branding.dart';
-import 'worker_chatpage.dart';
+import '../../theme/branding.dart';
+import '../shared/chat_page.dart';
 
 class MessagesPage extends StatefulWidget {
   final String jobProviderId;

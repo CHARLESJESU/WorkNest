@@ -15,27 +15,27 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_database/firebase_database.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:nivetha123/Pages/workerpagesubfolder/contentviewer.dart';
+import 'package:nivetha123/screens/worker/worker_content_view.dart';
 
-import 'package:nivetha123/Pages/workerpagesubfolder/workerjobprovider.dart';
+import 'package:nivetha123/models/job_provider.dart';
 
-import 'package:nivetha123/Pages/workerpagesubfolder/workerpost.dart';
+import 'package:nivetha123/models/post.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../login/Login.dart';
+import '../auth/login.dart';
 
-import '../screens/user_data.dart';
+import '../../models/user_data.dart';
 
-import 'Backcontroll.dart';
+import '../../services/back_button_controller.dart';
 
 import 'job_status_page.dart';
 
-import 'map_pages.dart';
+import '../shared/map_page.dart';
 
-import 'profile_details_page.dart';
-import 'worker_message.dart';
-import '../login/branding.dart';
+import '../shared/profile_edit.dart';
+import 'worker_messages.dart';
+import '../../theme/branding.dart';
 
 
 class Workerpage extends StatefulWidget {

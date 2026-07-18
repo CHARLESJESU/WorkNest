@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart'; // Keep for location lookup
 
 // Your existing imports for models and utilities
-import 'package:nivetha123/Pages/workerpagesubfolder/workerjobprovider.dart'; // Assuming this is your JobProvider model
-import 'package:nivetha123/Pages/workerpagesubfolder/workerpost.dart'; // Assuming this is your Post model
+import 'package:nivetha123/models/job_provider.dart'; // Assuming this is your JobProvider model
+import 'package:nivetha123/models/post.dart'; // Assuming this is your Post model
 
 
-import '../map_pages.dart'; // Your existing MapPage
-import '../../login/branding.dart';
+import '../shared/map_page.dart'; // Your existing MapPage
+import '../../theme/branding.dart';
 
 class WorkerContentView extends StatelessWidget {
   final List<Post> posts;

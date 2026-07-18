@@ -6,14 +6,14 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:nivetha123/screens/user_data.dart';
-import '../login/Login.dart';
-import '../login/branding.dart';
-import 'form_page.dart';
+import 'package:nivetha123/models/user_data.dart';
+import '../auth/login.dart';
+import '../../theme/branding.dart';
+import 'post_job.dart';
 import 'applications.dart';
-import 'messages.dart';
+import 'jobprovider_messages.dart';
 import 'order_details.dart';
-import 'profile_details_page.dart';
+import '../shared/profile_edit.dart';
 
 class Jobproviderpage extends StatefulWidget {
   final UserData userData;

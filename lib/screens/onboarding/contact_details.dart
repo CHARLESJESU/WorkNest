@@ -1,11 +1,11 @@
 import 'package:country_state_city_pro/country_state_city_pro.dart';
 import 'package:flutter/material.dart';
-import 'package:nivetha123/screens/profile_details.dart';
-import 'package:nivetha123/screens/summary.dart';
-import 'package:nivetha123/screens/user_data.dart';
+import 'package:nivetha123/screens/onboarding/profile_details.dart';
+import 'package:nivetha123/screens/onboarding/summary.dart';
+import 'package:nivetha123/models/user_data.dart';
 
-import '../login/branding.dart';
-import '../widgets/step_progress.dart';
+import '../../theme/branding.dart';
+import '../../widgets/step_progress.dart';
 
 class Page3ContactDetails extends StatefulWidget {
   final UserData userData;

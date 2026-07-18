@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../login/branding.dart';
+import '../../theme/branding.dart';
 
 class Order {
   final String id;

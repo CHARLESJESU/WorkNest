@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import '../login/branding.dart';
+import '../../theme/branding.dart';
 
 class Application {
   final String userId;

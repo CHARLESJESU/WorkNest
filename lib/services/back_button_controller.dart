@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../login/branding.dart';
+import '../theme/branding.dart';
 
 class BackButtonController extends GetxController {
   DateTime? _lastPressed;

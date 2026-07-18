@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import '../screens/user_data.dart';
-import '../login/branding.dart';
+import '../../models/user_data.dart';
+import '../../theme/branding.dart';
 
 class JobStatusPage extends StatefulWidget {
   final UserData userData;

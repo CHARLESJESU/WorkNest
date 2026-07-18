@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:nivetha123/screens/user_data.dart';
-import 'package:nivetha123/screens/checkbox_animation_page.dart';
-import '../login/branding.dart';
-import '../main.dart';
-import '../widgets/step_progress.dart';
+import 'package:nivetha123/models/user_data.dart';
+import 'package:nivetha123/screens/onboarding/checkbox_animation_page.dart';
+import '../../theme/branding.dart';
+import '../../main.dart';
+import '../../widgets/step_progress.dart';
 
 class Page5Summary extends StatefulWidget {
   final UserData userData;

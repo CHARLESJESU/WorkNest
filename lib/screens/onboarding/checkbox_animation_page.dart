@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:nivetha123/Pages/jobproviderpage.dart';
-import 'package:nivetha123/Pages/workerpage.dart';
-import 'package:nivetha123/screens/user_data.dart';
-import '../login/branding.dart';
+import 'package:nivetha123/screens/jobprovider/jobprovider_home.dart';
+import 'package:nivetha123/screens/worker/worker_home.dart';
+import 'package:nivetha123/models/user_data.dart';
+import '../../theme/branding.dart';
 
 class CheckboxAnimationPage extends StatefulWidget {
   final bool success;

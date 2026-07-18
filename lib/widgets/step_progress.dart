@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../login/branding.dart';
+import '../theme/branding.dart';
 
 class StepProgress extends StatelessWidget {
   final int currentStep;

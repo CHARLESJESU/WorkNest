@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:nivetha123/screens/personal_details.dart';
-import 'package:nivetha123/screens/user_data.dart';
-import '../login/branding.dart';
-import '../widgets/step_progress.dart';
+import 'package:nivetha123/screens/onboarding/personal_details.dart';
+import 'package:nivetha123/models/user_data.dart';
+import '../../theme/branding.dart';
+import '../../widgets/step_progress.dart';
 
 class Page1NameRole extends StatefulWidget {
   final UserData userData;

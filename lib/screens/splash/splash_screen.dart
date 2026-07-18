@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:nivetha123/Pages/jobproviderpage.dart';
-import 'package:nivetha123/Pages/workerpage.dart';
+import 'package:nivetha123/screens/jobprovider/jobprovider_home.dart';
+import 'package:nivetha123/screens/worker/worker_home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../login/Login.dart';
-import '../screens/user_data.dart';
+import '../auth/login.dart';
+import '../../models/user_data.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
